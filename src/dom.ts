@@ -11,6 +11,9 @@ export function registerEscapeHandler(
   if (!outsideContainer) return () => {};
 
   const onClick = (e: MouseEvent) => {
+    if (!outsideContainer.classList.contains("active")) {
+      return;
+    }
     if (e.target === outsideContainer) {
       e.preventDefault();
       e.stopPropagation();
@@ -19,6 +22,9 @@ export function registerEscapeHandler(
   };
 
   const onKeydown = (e: KeyboardEvent) => {
+    if (!outsideContainer.classList.contains("active")) {
+      return;
+    }
     if (e.key === "Escape") {
       e.preventDefault();
       onEscape();
