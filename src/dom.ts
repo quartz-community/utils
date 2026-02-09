@@ -10,25 +10,20 @@ export function registerEscapeHandler(
 ): () => void {
   if (!outsideContainer) return () => {};
 
-  const onKeydown = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onEscape();
-    }
-  };
-
+  // Click handler: only trigger when clicking directly on the container backdrop,
+  // not when clicking on children or elements outside
   const onClick = (e: MouseEvent) => {
-    if (e.target instanceof Node && !outsideContainer.contains(e.target)) {
+    if (e.target === outsideContainer) {
+      e.preventDefault();
+      e.stopPropagation();
       onEscape();
     }
   };
 
-  document.addEventListener("keydown", onKeydown);
-  document.addEventListener("click", onClick);
+  outsideContainer.addEventListener("click", onClick);
 
   return () => {
-    document.removeEventListener("keydown", onKeydown);
-    document.removeEventListener("click", onClick);
+    outsideContainer.removeEventListener("click", onClick);
   };
 }
 
