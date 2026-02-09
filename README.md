@@ -1,165 +1,81 @@
-# Quartz Community Plugin Template
+# @quartz-community/utils
 
-Production-ready template for building, testing, and publishing Quartz community plugins. It mirrors
-Quartz's native plugin patterns and uses a factory-function API similar to Astro integrations:
-plugins are created by functions that return objects with `name` and lifecycle hooks.
+Shared utility functions for Quartz community plugins.
 
-## Highlights
-
-- ✅ Quartz-compatible transformer/filter/emitter examples
-- ✅ TypeScript-first with exported types for consumers
-- ✅ `tsup` bundling + declaration output
-- ✅ Vitest testing setup with example tests
-- ✅ Linting/formatting with ESLint + Prettier
-- ✅ CI workflow for checks and npm publishing
-- ✅ Demonstrates CSS/JS resource injection and remark/rehype usage
-
-## Getting started
+## Installation
 
 ```bash
-npm install
-npm run build
+npm install @quartz-community/utils
 ```
 
-## Usage in Quartz
+Or using GitHub:
 
-Install your plugin into a Quartz site and register it in `quartz.config.ts`:
+```bash
+npm install github:quartz-community/utils
+```
+
+## Usage
 
 ```ts
 import {
-  ExampleTransformer,
-  ExampleFilter,
-  ExampleEmitter,
-} from "@quartz-community/plugin-template";
+  simplifySlug,
+  getFullSlug,
+  joinSegments,
+  removeAllChildren,
+  classNames,
+} from "@quartz-community/utils";
 
-export default {
-  configuration: {
-    pageTitle: "My Garden",
-  },
-  plugins: {
-    transformers: [ExampleTransformer({ highlightToken: "==" })],
-    filters: [ExampleFilter({ allowDrafts: false })],
-    emitters: [ExampleEmitter({ manifestSlug: "plugin-manifest" })],
-  },
-};
+// Path utilities
+const slug = simplifySlug("folder/index"); // "folder/"
+const currentSlug = getFullSlug(window); // e.g., "blog/my-post"
+const path = joinSegments("a", "b", "c"); // "a/b/c"
+
+// DOM utilities
+removeAllChildren(document.getElementById("container")!);
+
+// Language utilities
+const classes = classNames("btn", isActive && "active", null); // "btn active"
 ```
 
-## Plugin factory pattern (Astro-style)
+## Modules
 
-Quartz plugins are factory functions that return an object with a `name` and hook implementations.
-This mirrors Astro's integration pattern (a function returning an object of hooks), which makes
-composition and configuration explicit and predictable.
+### Path (`@quartz-community/utils/path`)
+
+Path manipulation utilities for Quartz slugs:
+
+- `simplifySlug(slug)` - Remove `/index` suffix from slugs
+- `getFullSlug(window)` - Get current page slug from document body dataset
+- `getFullSlugFromUrl()` - Get current page slug from URL pathname
+- `joinSegments(...segments)` - Join path segments with proper slash handling
+- `resolvePath(path)` - Ensure path starts with `/`
+- `endsWith(str, suffix)` - Check if path ends with suffix
+- `trimSuffix(str, suffix)` - Remove suffix from path
+- `stripSlashes(str, onlyPrefix?)` - Remove leading/trailing slashes
+- `getFileExtension(path)` - Get file extension
+- `isFolderPath(path)` - Check if path represents a folder
+- `getAllSegmentPrefixes(path)` - Get all path prefixes
+
+### DOM (`@quartz-community/utils/dom`)
+
+DOM manipulation utilities:
+
+- `removeAllChildren(element)` - Remove all child nodes from an element
+- `registerEscapeHandler(container, callback)` - Register Escape key and click-outside handlers
+- `normalizeRelativeURLs(document, baseUrl)` - Convert relative URLs to absolute
+
+### Lang (`@quartz-community/utils/lang`)
+
+Language/general utilities:
+
+- `classNames(...classes)` - Combine CSS class names, filtering falsy values
+
+## Types
+
+The package exports TypeScript types for type-safe slug handling:
 
 ```ts
-import type { QuartzTransformerPlugin } from "@jackyzha0/quartz/plugins/types";
-
-export const MyTransformer: QuartzTransformerPlugin<{ enabled: boolean }> = (opts) => {
-  return {
-    name: "MyTransformer",
-    markdownPlugins() {
-      return [];
-    },
-  };
-};
+import type { FullSlug, SimpleSlug, RelativeURL } from "@quartz-community/utils";
 ```
-
-## Examples included
-
-### Transformer
-
-`ExampleTransformer` shows how to:
-
-- apply a custom remark plugin
-- run a rehype plugin
-- inject CSS/JS resources
-- perform a text transform hook
-
-```ts
-import { ExampleTransformer } from "@quartz-community/plugin-template";
-
-ExampleTransformer({
-  highlightToken: "==",
-  headingClass: "example-plugin-heading",
-  enableGfm: true,
-  addHeadingSlugs: true,
-});
-```
-
-The transformer uses a custom remark plugin to convert `==highlight==` into bold text and a rehype
-plugin to attach a class to all headings. It also injects a small inline CSS/JS snippet.
-
-### Filter
-
-`ExampleFilter` demonstrates frontmatter-driven filtering:
-
-```ts
-ExampleFilter({
-  allowDrafts: false,
-  excludeTags: ["private", "wip"],
-  excludePathPrefixes: ["_drafts/", "_private/"],
-});
-```
-
-### Emitter
-
-`ExampleEmitter` emits a JSON manifest of all pages:
-
-```ts
-ExampleEmitter({
-  manifestSlug: "plugin-manifest",
-  includeFrontmatter: true,
-  metadata: { project: "My Garden" },
-  transformManifest: (json) => json.replace("My Garden", "Quartz"),
-});
-```
-
-## API reference
-
-### `ExampleTransformer(options)`
-
-| Option            | Type      | Default                    | Description                   |
-| ----------------- | --------- | -------------------------- | ----------------------------- |
-| `highlightToken`  | `string`  | `"=="`                     | Token used to highlight text. |
-| `headingClass`    | `string`  | `"example-plugin-heading"` | Class added to headings.      |
-| `enableGfm`       | `boolean` | `true`                     | Enables `remark-gfm`.         |
-| `addHeadingSlugs` | `boolean` | `true`                     | Enables `rehype-slug`.        |
-
-### `ExampleFilter(options)`
-
-| Option                | Type       | Default                     | Description               |
-| --------------------- | ---------- | --------------------------- | ------------------------- |
-| `allowDrafts`         | `boolean`  | `false`                     | Publish draft pages.      |
-| `excludeTags`         | `string[]` | `["private"]`               | Tags to exclude.          |
-| `excludePathPrefixes` | `string[]` | `["_drafts/", "_private/"]` | Path prefixes to exclude. |
-
-### `ExampleEmitter(options)`
-
-| Option                | Type                       | Default                                   | Description                               |
-| --------------------- | -------------------------- | ----------------------------------------- | ----------------------------------------- |
-| `manifestSlug`        | `string`                   | `"plugin-manifest"`                       | Output filename (without extension).      |
-| `includeFrontmatter`  | `boolean`                  | `true`                                    | Include frontmatter in output.            |
-| `metadata`            | `Record<string, unknown>`  | `{ generator: "Quartz Plugin Template" }` | Extra metadata in manifest.               |
-| `transformManifest`   | `(json: string) => string` | `undefined`                               | Custom transformer for emitted JSON.      |
-| `manifestScriptClass` | `string`                   | `undefined`                               | Optional CSS class if rendered into HTML. |
-
-## Testing
-
-```bash
-npm test
-```
-
-## Build and lint
-
-```bash
-npm run build
-npm run lint
-npm run format
-```
-
-## Publishing
-
-Tags matching `v*` trigger the GitHub Actions publish workflow. Ensure `NPM_TOKEN` is set in the
-repository secrets.
 
 ## License
 

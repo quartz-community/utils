@@ -1,23 +1,19 @@
-export { ExampleTransformer } from "./transformer";
-export { ExampleFilter } from "./filter";
-export { ExampleEmitter } from "./emitter";
-export { default as ExampleComponent } from "./components/ExampleComponent";
+export {
+  simplifySlug,
+  getFullSlug,
+  getFullSlugFromUrl,
+  joinSegments,
+  resolvePath,
+  endsWith,
+  trimSuffix,
+  stripSlashes,
+  getFileExtension,
+  isFolderPath,
+  getAllSegmentPrefixes,
+} from "./path.js";
 
-export type {
-  ExampleTransformerOptions,
-  ExampleFilterOptions,
-  ExampleEmitterOptions,
-} from "./types";
+export type { FullSlug, SimpleSlug, RelativeURL } from "./path.js";
 
-export type { ExampleComponentOptions } from "./components/ExampleComponent";
+export { removeAllChildren, registerEscapeHandler, normalizeRelativeURLs } from "./dom.js";
 
-// Re-export shared types from @quartz-community/types
-export type {
-  QuartzComponent,
-  QuartzComponentProps,
-  QuartzComponentConstructor,
-  StringResource,
-  QuartzTransformerPlugin,
-  QuartzFilterPlugin,
-  QuartzEmitterPlugin,
-} from "@quartz-community/types";
+export { classNames } from "./lang.js";
