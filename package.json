@@ -50,6 +50,7 @@
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "dependencies": {
+    "@quartz-community/types": "github:quartz-community/types",
     "github-slugger": "^2.0.0"
   },
   "scripts": {

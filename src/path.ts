@@ -1,18 +1,13 @@
 import { slug as slugAnchor } from "github-slugger";
+import type { FilePath, FullSlug } from "@quartz-community/types";
 
-type SlugLike<T> = string & { __brand: T };
-
-/** Cannot be relative and must have a file extension. */
-export type FilePath = SlugLike<"filepath">;
-
-/** Cannot be relative and may not have leading or trailing slashes. Can have `index` as last segment. */
-export type FullSlug = SlugLike<"full">;
+export type { FilePath, FullSlug };
 
 /** No '/index' ending, no file extension, can have trailing slash for folders. */
-export type SimpleSlug = SlugLike<"simple">;
+export type SimpleSlug = string & { _brand: "SimpleSlug" };
 
 /** Starts with './' or '../', used for navigation. */
-export type RelativeURL = SlugLike<"relative">;
+export type RelativeURL = string & { _brand: "RelativeURL" };
 
 export interface TransformOptions {
   strategy: "absolute" | "relative" | "shortest";
