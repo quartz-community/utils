@@ -40,11 +40,18 @@
       "types": "./dist/lang.d.ts",
       "import": "./dist/lang.js"
     },
+    "./escape": {
+      "types": "./dist/escape.d.ts",
+      "import": "./dist/escape.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
+  "dependencies": {
+    "github-slugger": "^2.0.0"
+  },
   "scripts": {
     "build": "tsup",
     "prepare": "npm run build",

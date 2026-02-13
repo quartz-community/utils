@@ -6,6 +6,7 @@ export default defineConfig({
     path: "src/path.ts",
     dom: "src/dom.ts",
     lang: "src/lang.ts",
+    escape: "src/escape.ts",
   },
   format: ["esm"],
   dts: true,
