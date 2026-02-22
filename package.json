@@ -51,7 +51,9 @@
   "sideEffects": false,
   "dependencies": {
     "@quartz-community/types": "github:quartz-community/types",
-    "github-slugger": "^2.0.0"
+    "github-slugger": "^2.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "build": "tsup",
@@ -70,8 +72,6 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.6.2",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },
   "engines": {
