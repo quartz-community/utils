@@ -31,3 +31,5 @@ export { removeAllChildren, registerEscapeHandler, normalizeRelativeURLs } from 
 export { classNames, capitalize } from "./lang.js";
 
 export { escapeHTML, unescapeHTML } from "./escape.js";
+
+export { htmlToJsx } from "./jsx.js";

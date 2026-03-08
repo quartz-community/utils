@@ -7,6 +7,7 @@ export default defineConfig({
     dom: "src/dom.ts",
     lang: "src/lang.ts",
     escape: "src/escape.ts",
+    jsx: "src/jsx.tsx",
   },
   format: ["esm"],
   dts: true,

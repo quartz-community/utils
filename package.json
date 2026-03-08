@@ -44,6 +44,10 @@
       "types": "./dist/escape.d.ts",
       "import": "./dist/escape.js"
     },
+    "./jsx": {
+      "types": "./dist/jsx.d.ts",
+      "import": "./dist/jsx.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -51,6 +55,7 @@
   "sideEffects": false,
   "dependencies": {
     "@quartz-community/types": "github:quartz-community/types",
+    "hast-util-to-jsx-runtime": "^2.3.6",
     "github-slugger": "^2.0.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
@@ -64,6 +69,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm run format && npm run test"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
