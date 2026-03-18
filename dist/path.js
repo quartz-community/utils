@@ -72,6 +72,15 @@ function resolvePath(to) {
   if (to.startsWith("/")) return to;
   return "/" + to;
 }
+function getBasePath() {
+  if (typeof document === "undefined") return "";
+  return document.body?.dataset?.basepath ?? "";
+}
+function resolveBasePath(to, basePath) {
+  const base = basePath ?? getBasePath();
+  const slug = to.startsWith("/") ? to : "/" + to;
+  return base + slug;
+}
 function endsWith(s, suffix) {
   return s === suffix || s.endsWith("/" + suffix);
 }
@@ -184,6 +193,6 @@ function _addRelativeToStart(s) {
   return s;
 }
 
-export { endsWith, getAllSegmentPrefixes, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
+export { endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
 //# sourceMappingURL=path.js.map
 //# sourceMappingURL=path.js.map

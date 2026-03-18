@@ -1,4 +1,4 @@
-export { RelativeURL, SimpleSlug, TransformOptions, endsWith, getAllSegmentPrefixes, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix } from './path.js';
+export { RelativeURL, SimpleSlug, TransformOptions, endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix } from './path.js';
 export { normalizeRelativeURLs, registerEscapeHandler, removeAllChildren } from './dom.js';
 export { capitalize, classNames } from './lang.js';
 export { escapeHTML, unescapeHTML } from './escape.js';

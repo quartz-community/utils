@@ -4,6 +4,8 @@ export {
   getFullSlugFromUrl,
   joinSegments,
   resolvePath,
+  getBasePath,
+  resolveBasePath,
   endsWith,
   trimSuffix,
   stripSlashes,

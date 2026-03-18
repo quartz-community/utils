@@ -107,6 +107,21 @@ export function resolvePath(to: string): string {
   return "/" + to;
 }
 
+/** Read the base path injected at build time via `data-basepath` on `<body>`.
+ *  Returns `""` for root deployments, e.g. `"/repository"` for subdirectory. */
+export function getBasePath(): string {
+  if (typeof document === "undefined") return "";
+  return document.body?.dataset?.basepath ?? "";
+}
+
+/** Resolve a slug to an absolute URL path, prepending the site's base path.
+ *  e.g. `resolveBasePath("features/Callouts")` → `"/repository/features/Callouts"` */
+export function resolveBasePath(to: string, basePath?: string): string {
+  const base = basePath ?? getBasePath();
+  const slug = to.startsWith("/") ? to : "/" + to;
+  return base + slug;
+}
+
 export function endsWith(s: string, suffix: string): boolean {
   return s === suffix || s.endsWith("/" + suffix);
 }

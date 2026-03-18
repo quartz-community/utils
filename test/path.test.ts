@@ -3,6 +3,7 @@ import {
   simplifySlug,
   joinSegments,
   resolvePath,
+  resolveBasePath,
   endsWith,
   trimSuffix,
   stripSlashes,
@@ -103,5 +104,35 @@ describe("isFolderPath", () => {
 describe("getAllSegmentPrefixes", () => {
   it("returns all prefixes", () => {
     expect(getAllSegmentPrefixes("a/b/c")).toEqual(["a", "a/b", "a/b/c"]);
+  });
+});
+
+describe("resolveBasePath", () => {
+  it("prepends explicit basePath to slug", () => {
+    expect(resolveBasePath("features/Callouts", "/repository")).toBe(
+      "/repository/features/Callouts",
+    );
+  });
+
+  it("prepends explicit basePath to slug with leading slash", () => {
+    expect(resolveBasePath("/features/Callouts", "/repository")).toBe(
+      "/repository/features/Callouts",
+    );
+  });
+
+  it("returns just /slug when basePath is empty (root deployment)", () => {
+    expect(resolveBasePath("features/Callouts", "")).toBe("/features/Callouts");
+  });
+
+  it("handles empty slug with basePath", () => {
+    expect(resolveBasePath("", "/repository")).toBe("/repository/");
+  });
+
+  it("handles empty slug with empty basePath", () => {
+    expect(resolveBasePath("", "")).toBe("/");
+  });
+
+  it("falls back to getBasePath() when no basePath argument (server-side returns empty)", () => {
+    expect(resolveBasePath("page")).toBe("/page");
   });
 });
