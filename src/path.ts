@@ -245,7 +245,12 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
   }
 }
 
-function _sluggify(s: string): string {
+/**
+ * Slugify a file path for use as an href.
+ * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #.
+ * Operates per segment so directory separators are preserved.
+ */
+export function slugifyPath(s: string): string {
   return s
     .split("/")
     .map((segment) =>
@@ -258,6 +263,11 @@ function _sluggify(s: string): string {
     )
     .join("/")
     .replace(/\/$/, "");
+}
+
+/** @internal */
+function _sluggify(s: string): string {
+  return slugifyPath(s);
 }
 
 function _containsForbiddenCharacters(s: string): boolean {

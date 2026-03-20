@@ -9,6 +9,7 @@ import {
   stripSlashes,
   isFolderPath,
   getAllSegmentPrefixes,
+  slugifyPath,
 } from "../src/path.js";
 
 describe("simplifySlug", () => {
@@ -134,5 +135,37 @@ describe("resolveBasePath", () => {
 
   it("falls back to getBasePath() when no basePath argument (server-side returns empty)", () => {
     expect(resolveBasePath("page")).toBe("/page");
+  });
+});
+
+describe("slugifyPath", () => {
+  it("replaces spaces with hyphens", () => {
+    expect(slugifyPath("Arcanist's Folly")).toBe("Arcanist's-Folly");
+  });
+
+  it("replaces ampersands with -and-", () => {
+    expect(slugifyPath("Arts & Crafts")).toBe("Arts--and--Crafts");
+  });
+
+  it("replaces percent with -percent", () => {
+    expect(slugifyPath("100%")).toBe("100-percent");
+  });
+
+  it("removes question marks and hash signs", () => {
+    expect(slugifyPath("What?#Section")).toBe("WhatSection");
+  });
+
+  it("handles multi-segment paths", () => {
+    expect(slugifyPath("Compendium/Species/Ratkin/Deific Exaltation")).toBe(
+      "Compendium/Species/Ratkin/Deific-Exaltation",
+    );
+  });
+
+  it("strips trailing slashes", () => {
+    expect(slugifyPath("folder/")).toBe("folder");
+  });
+
+  it("leaves clean paths unchanged", () => {
+    expect(slugifyPath("Compendium/Species/Dryad/Apple")).toBe("Compendium/Species/Dryad/Apple");
   });
 });

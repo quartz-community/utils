@@ -42,5 +42,11 @@ declare function splitAnchor(link: string): [string, string];
 declare function slugTag(tag: string): string;
 declare function transformInternalLink(link: string): RelativeURL;
 declare function transformLink(src: FullSlug, target: string, opts: TransformOptions): RelativeURL;
+/**
+ * Slugify a file path for use as an href.
+ * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #.
+ * Operates per segment so directory separators are preserved.
+ */
+declare function slugifyPath(s: string): string;
 
-export { type RelativeURL, type SimpleSlug, type TransformOptions, endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
+export { type RelativeURL, type SimpleSlug, type TransformOptions, endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, slugifyPath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };

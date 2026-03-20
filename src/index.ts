@@ -21,6 +21,7 @@ export {
   pathToRoot,
   resolveRelative,
   splitAnchor,
+  slugifyPath,
   slugTag,
   transformInternalLink,
   transformLink,

@@ -169,10 +169,13 @@ function transformLink(src, target, opts) {
     return joinSegments(pathToRoot(src), canonicalSlug) + folderTail;
   }
 }
-function _sluggify(s) {
+function slugifyPath(s) {
   return s.split("/").map(
     (segment) => segment.replace(/\s/g, "-").replace(/&/g, "-and-").replace(/%/g, "-percent").replace(/\?/g, "").replace(/#/g, "")
   ).join("/").replace(/\/$/, "");
+}
+function _sluggify(s) {
+  return slugifyPath(s);
 }
 function _containsForbiddenCharacters(s) {
   return s.includes(" ") || s.includes("#") || s.includes("?") || s.includes("&");
@@ -193,6 +196,6 @@ function _addRelativeToStart(s) {
   return s;
 }
 
-export { endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
+export { endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, slugifyPath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
 //# sourceMappingURL=path.js.map
 //# sourceMappingURL=path.js.map
