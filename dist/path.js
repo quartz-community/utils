@@ -152,6 +152,7 @@ function transformLink(src, target, opts) {
   if (opts.strategy === "relative") {
     return targetSlug;
   } else {
+    const effectiveSrc = !endsWith(src, "index") && opts.allSlugs.includes(`${src}/index`) ? `${src}/index` : src;
     const folderTail = isFolderPath(targetSlug) ? "/" : "";
     const canonicalSlug = stripSlashes(targetSlug.slice(".".length));
     const [targetCanonical, targetAnchor] = splitAnchor(canonicalSlug);
@@ -163,10 +164,10 @@ function transformLink(src, target, opts) {
       });
       if (matchingFileNames.length === 1) {
         const matchedSlug = matchingFileNames[0];
-        return resolveRelative(src, matchedSlug) + targetAnchor;
+        return resolveRelative(effectiveSrc, matchedSlug) + targetAnchor;
       }
     }
-    return joinSegments(pathToRoot(src), canonicalSlug) + folderTail;
+    return joinSegments(pathToRoot(effectiveSrc), canonicalSlug) + folderTail;
   }
 }
 function slugifyPath(s) {

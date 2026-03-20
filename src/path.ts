@@ -224,6 +224,14 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
   if (opts.strategy === "relative") {
     return targetSlug as RelativeURL;
   } else {
+    // When src is a folder page (e.g. "Compendium/Spells" backed by index.md),
+    // the browser serves it at "/Compendium/Spells/" with a trailing slash.
+    // pathToRoot needs the "/index" suffix to compute the correct depth.
+    const effectiveSrc =
+      !endsWith(src, "index") && opts.allSlugs.includes(`${src}/index` as FullSlug)
+        ? (`${src}/index` as FullSlug)
+        : src;
+
     const folderTail = isFolderPath(targetSlug) ? "/" : "";
     const canonicalSlug = stripSlashes(targetSlug.slice(".".length));
     const [targetCanonical, targetAnchor] = splitAnchor(canonicalSlug);
@@ -237,11 +245,11 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
 
       if (matchingFileNames.length === 1) {
         const matchedSlug = matchingFileNames[0]!;
-        return (resolveRelative(src, matchedSlug) + targetAnchor) as RelativeURL;
+        return (resolveRelative(effectiveSrc, matchedSlug) + targetAnchor) as RelativeURL;
       }
     }
 
-    return (joinSegments(pathToRoot(src), canonicalSlug) + folderTail) as RelativeURL;
+    return (joinSegments(pathToRoot(effectiveSrc), canonicalSlug) + folderTail) as RelativeURL;
   }
 }
 

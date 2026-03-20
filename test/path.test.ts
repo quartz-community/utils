@@ -10,7 +10,9 @@ import {
   isFolderPath,
   getAllSegmentPrefixes,
   slugifyPath,
+  transformLink,
 } from "../src/path.js";
+import type { FullSlug, TransformOptions } from "../src/path.js";
 
 describe("simplifySlug", () => {
   it("removes /index suffix", () => {
@@ -167,5 +169,128 @@ describe("slugifyPath", () => {
 
   it("leaves clean paths unchanged", () => {
     expect(slugifyPath("Compendium/Species/Dryad/Apple")).toBe("Compendium/Species/Dryad/Apple");
+  });
+});
+
+describe("transformLink", () => {
+  const allSlugs = [
+    "a/b/c",
+    "a/b/d",
+    "a/b/index",
+    "e/f",
+    "e/g/h",
+    "index",
+    "a/test.png",
+  ] as FullSlug[];
+
+  describe("absolute", () => {
+    const opts: TransformOptions = { strategy: "absolute", allSlugs };
+
+    it("resolves from a/b/c", () => {
+      const cur = "a/b/c" as FullSlug;
+      expect(transformLink(cur, "a/b/d", opts)).toBe("../../a/b/d");
+      expect(transformLink(cur, "a/b/index", opts)).toBe("../../a/b/");
+      expect(transformLink(cur, "e/f", opts)).toBe("../../e/f");
+      expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves from a/b/index (explicit index slug)", () => {
+      const cur = "a/b/index" as FullSlug;
+      expect(transformLink(cur, "a/b/d", opts)).toBe("../../a/b/d");
+      expect(transformLink(cur, "a/b", opts)).toBe("../../a/b");
+      expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves from a/b (folder page without /index suffix) same as a/b/index", () => {
+      const cur = "a/b" as FullSlug;
+      expect(transformLink(cur, "a/b/d", opts)).toBe("../../a/b/d");
+      expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves from index", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "index", opts)).toBe("./");
+      expect(transformLink(cur, "a/b/c", opts)).toBe("./a/b/c");
+      expect(transformLink(cur, "a/b/index", opts)).toBe("./a/b/");
+    });
+  });
+
+  describe("shortest", () => {
+    const opts: TransformOptions = { strategy: "shortest", allSlugs };
+
+    it("resolves unique filenames from a/b/c", () => {
+      const cur = "a/b/c" as FullSlug;
+      expect(transformLink(cur, "d", opts)).toBe("../../a/b/d");
+      expect(transformLink(cur, "h", opts)).toBe("../../e/g/h");
+      expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves from a/b/index (explicit index slug)", () => {
+      const cur = "a/b/index" as FullSlug;
+      expect(transformLink(cur, "d", opts)).toBe("../../a/b/d");
+      expect(transformLink(cur, "h", opts)).toBe("../../e/g/h");
+      expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves from a/b (folder page without /index suffix) same as a/b/index", () => {
+      const cur = "a/b" as FullSlug;
+      expect(transformLink(cur, "d", opts)).toBe("../../a/b/d");
+      expect(transformLink(cur, "h", opts)).toBe("../../e/g/h");
+      expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves from index", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "d", opts)).toBe("./a/b/d");
+      expect(transformLink(cur, "h", opts)).toBe("./e/g/h");
+      expect(transformLink(cur, "index", opts)).toBe("./");
+    });
+  });
+
+  describe("folder page bug regression", () => {
+    const spellSlugs = [
+      "Compendium/Spells/index",
+      "Compendium/Spells/Bane",
+      "Compendium/Spells/Absorb-Elements",
+      "Compendium/Species/Elf/Eladrin",
+      "index",
+    ] as FullSlug[];
+
+    it("does not double the folder segment for absolute strategy", () => {
+      const opts: TransformOptions = { strategy: "absolute", allSlugs: spellSlugs };
+      const cur = "Compendium/Spells" as FullSlug;
+      expect(transformLink(cur, "Compendium/Spells/Bane", opts)).toBe(
+        "../../Compendium/Spells/Bane",
+      );
+      expect(transformLink(cur, "Compendium/Spells/Absorb-Elements", opts)).toBe(
+        "../../Compendium/Spells/Absorb-Elements",
+      );
+    });
+
+    it("does not double the folder segment for shortest strategy", () => {
+      const opts: TransformOptions = { strategy: "shortest", allSlugs: spellSlugs };
+      const cur = "Compendium/Spells" as FullSlug;
+      expect(transformLink(cur, "Bane", opts)).toBe("../../Compendium/Spells/Bane");
+      expect(transformLink(cur, "Absorb-Elements", opts)).toBe(
+        "../../Compendium/Spells/Absorb-Elements",
+      );
+    });
+
+    it("matches explicit index slug behavior", () => {
+      const opts: TransformOptions = { strategy: "absolute", allSlugs: spellSlugs };
+      const fromFolder = "Compendium/Spells" as FullSlug;
+      const fromIndex = "Compendium/Spells/index" as FullSlug;
+      expect(transformLink(fromFolder, "Compendium/Spells/Bane", opts)).toBe(
+        transformLink(fromIndex, "Compendium/Spells/Bane", opts),
+      );
+    });
+
+    it("does not affect non-folder pages", () => {
+      const opts: TransformOptions = { strategy: "absolute", allSlugs: spellSlugs };
+      const cur = "Compendium/Spells/Bane" as FullSlug;
+      expect(transformLink(cur, "Compendium/Spells/Absorb-Elements", opts)).toBe(
+        "../../Compendium/Spells/Absorb-Elements",
+      );
+    });
   });
 });
