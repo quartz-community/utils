@@ -237,7 +237,21 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
     const [targetCanonical, targetAnchor] = splitAnchor(canonicalSlug);
 
     if (opts.strategy === "shortest") {
+      const isMultiSegment = targetCanonical.includes("/");
+      const isFolderTarget = isFolderPath(targetSlug);
       const matchingFileNames = opts.allSlugs.filter((slug) => {
+        if (isMultiSegment) {
+          // Multi-segment partial path: match by suffix
+          if (slug === targetCanonical || slug.endsWith("/" + targetCanonical)) {
+            return true;
+          }
+          // Folder targets have "/index" stripped — also match the "/index" variant
+          if (isFolderTarget) {
+            const withIndex = targetCanonical + "/index";
+            return slug === withIndex || slug.endsWith("/" + withIndex);
+          }
+          return false;
+        }
         const parts = slug.split("/");
         const fileName = parts.at(-1);
         return targetCanonical === fileName;

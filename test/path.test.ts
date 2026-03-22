@@ -247,6 +247,96 @@ describe("transformLink", () => {
     });
   });
 
+  describe("multi-segment partial path (shortest)", () => {
+    const multiSegSlugs = [
+      "Compendium/Species/Elf/Wood",
+      "Compendium/Species/Elf/index",
+      "Compendium/Species/Elf/Eladrin",
+      "Compendium/Spells/index",
+      "Compendium/Spells/Bane",
+      "Campaigns/Unnamed/People/index",
+      "index",
+    ] as FullSlug[];
+
+    const opts: TransformOptions = { strategy: "shortest", allSlugs: multiSegSlugs };
+
+    it("resolves multi-segment path Species/Elf/Wood to unique match", () => {
+      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
+      expect(transformLink(cur, "Species/Elf/Wood", opts)).toBe(
+        "../../../Compendium/Species/Elf/Wood",
+      );
+    });
+
+    it("resolves multi-segment path Species/Elf/index to folder page", () => {
+      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
+      expect(transformLink(cur, "Species/Elf/index", opts)).toBe(
+        "../../../Compendium/Species/Elf/",
+      );
+    });
+
+    it("falls back to absolute when multi-segment path has no match", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "Species/Elf/NoSuchPage", opts)).toBe("./Species/Elf/NoSuchPage");
+    });
+
+    it("resolves single-segment name that is unique", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "Bane", opts)).toBe("./Compendium/Spells/Bane");
+    });
+
+    it("resolves exact full path as multi-segment match", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "Compendium/Species/Elf/Eladrin", opts)).toBe(
+        "./Compendium/Species/Elf/Eladrin",
+      );
+    });
+  });
+
+  describe("multi-segment partial path (shortest)", () => {
+    const multiSegSlugs = [
+      "Compendium/Species/Elf/Wood",
+      "Compendium/Species/Elf/index",
+      "Compendium/Species/Elf/Eladrin",
+      "Compendium/Spells/index",
+      "Compendium/Spells/Bane",
+      "Campaigns/Unnamed/People/index",
+      "index",
+    ] as FullSlug[];
+
+    const opts: TransformOptions = { strategy: "shortest", allSlugs: multiSegSlugs };
+
+    it("resolves multi-segment path Species/Elf/Wood to unique match", () => {
+      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
+      expect(transformLink(cur, "Species/Elf/Wood", opts)).toBe(
+        "../../../Compendium/Species/Elf/Wood",
+      );
+    });
+
+    it("resolves multi-segment path Species/Elf/index to folder page", () => {
+      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
+      expect(transformLink(cur, "Species/Elf/index", opts)).toBe(
+        "../../../Compendium/Species/Elf/",
+      );
+    });
+
+    it("falls back to absolute when multi-segment path has no match", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "Species/Elf/NoSuchPage", opts)).toBe("./Species/Elf/NoSuchPage");
+    });
+
+    it("resolves single-segment name that is unique", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "Bane", opts)).toBe("./Compendium/Spells/Bane");
+    });
+
+    it("resolves exact full path as multi-segment match", () => {
+      const cur = "index" as FullSlug;
+      expect(transformLink(cur, "Compendium/Species/Elf/Eladrin", opts)).toBe(
+        "./Compendium/Species/Elf/Eladrin",
+      );
+    });
+  });
+
   describe("folder page bug regression", () => {
     const spellSlugs = [
       "Compendium/Spells/index",
