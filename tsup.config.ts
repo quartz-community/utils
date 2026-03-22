@@ -10,7 +10,7 @@ export default defineConfig({
     jsx: "src/jsx.tsx",
   },
   format: ["esm"],
-  dts: true,
+  dts: { tsconfig: "tsconfig.build.json" },
   sourcemap: true,
   clean: true,
   treeshake: true,
