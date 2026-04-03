@@ -5,8 +5,7 @@ function removeAllChildren(el) {
   }
 }
 function registerEscapeHandler(outsideContainer, onEscape) {
-  if (!outsideContainer) return () => {
-  };
+  if (!outsideContainer) return () => {};
   const onClick = (e) => {
     if (!outsideContainer.classList.contains("active")) {
       return;
@@ -39,7 +38,15 @@ function normalizeRelativeURLs(html, baseUrl) {
     const attr = el.hasAttribute("href") ? "href" : "src";
     const val = el.getAttribute(attr);
     if (!val) continue;
-    if (val.startsWith("http://") || val.startsWith("https://") || val.startsWith("mailto:") || val.startsWith("tel:") || val.startsWith("#") || val.startsWith("/") || val.startsWith("data:")) {
+    if (
+      val.startsWith("http://") ||
+      val.startsWith("https://") ||
+      val.startsWith("mailto:") ||
+      val.startsWith("tel:") ||
+      val.startsWith("#") ||
+      val.startsWith("/") ||
+      val.startsWith("data:")
+    ) {
       continue;
     }
     try {

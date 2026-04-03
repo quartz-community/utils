@@ -1,7 +1,7 @@
-import { slug } from 'github-slugger';
-import { toJsxRuntime } from 'hast-util-to-jsx-runtime';
-import { jsxs, jsx, Fragment } from 'preact/jsx-runtime';
-import { h } from 'preact';
+import { slug } from "github-slugger";
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import { jsxs, jsx, Fragment } from "preact/jsx-runtime";
+import { h } from "preact";
 
 // src/path.ts
 function isFilePath(s) {
@@ -14,7 +14,7 @@ function isFullSlug(s) {
   return validStart && validEnding && !_containsForbiddenCharacters(s);
 }
 function isSimpleSlug(s) {
-  const validStart = !(s.startsWith(".") || s.length > 1 && s.startsWith("/"));
+  const validStart = !(s.startsWith(".") || (s.length > 1 && s.startsWith("/")));
   const validEnding = !endsWith(s, "index");
   return validStart && !_containsForbiddenCharacters(s) && validEnding && !_hasFileExtension(s);
 }
@@ -60,7 +60,10 @@ function joinSegments(...args) {
   if (args.length === 0) {
     return "";
   }
-  let joined = args.filter((segment) => segment !== "" && segment !== "/").map((segment) => stripSlashes(segment)).join("/");
+  let joined = args
+    .filter((segment) => segment !== "" && segment !== "/")
+    .map((segment) => stripSlashes(segment))
+    .join("/");
   const first = args[0];
   const last = args[args.length - 1];
   if (first?.startsWith("/")) {
@@ -106,7 +109,12 @@ function getFileExtension(s) {
   return s.match(/\.[A-Za-z0-9]+$/)?.[0];
 }
 function isFolderPath(fplike) {
-  return fplike.endsWith("/") || endsWith(fplike, "index") || endsWith(fplike, "index.md") || endsWith(fplike, "index.html");
+  return (
+    fplike.endsWith("/") ||
+    endsWith(fplike, "index") ||
+    endsWith(fplike, "index.md") ||
+    endsWith(fplike, "index.html")
+  );
 }
 function getAllSegmentPrefixes(path) {
   const segments = path.split("/");
@@ -117,7 +125,12 @@ function getAllSegmentPrefixes(path) {
   return results;
 }
 function pathToRoot(slug) {
-  let rootPath = slug.split("/").filter((x) => x !== "").slice(0, -1).map((_) => "..").join("/");
+  let rootPath = slug
+    .split("/")
+    .filter((x) => x !== "")
+    .slice(0, -1)
+    .map((_) => "..")
+    .join("/");
   if (rootPath.length === 0) {
     rootPath = ".";
   }
@@ -136,7 +149,10 @@ function splitAnchor(link) {
   return [fp, slugged];
 }
 function slugTag(tag) {
-  return tag.split("/").map((tagSegment) => _sluggify(tagSegment)).join("/");
+  return tag
+    .split("/")
+    .map((tagSegment) => _sluggify(tagSegment))
+    .join("/");
 }
 function transformInternalLink(link) {
   const [fplike, anchor] = splitAnchor(decodeURI(link));
@@ -155,7 +171,8 @@ function transformLink(src, target, opts) {
   if (opts.strategy === "relative") {
     return targetSlug;
   } else {
-    const effectiveSrc = !endsWith(src, "index") && opts.allSlugs.includes(`${src}/index`) ? `${src}/index` : src;
+    const effectiveSrc =
+      !endsWith(src, "index") && opts.allSlugs.includes(`${src}/index`) ? `${src}/index` : src;
     const folderTail = isFolderPath(targetSlug) ? "/" : "";
     const canonicalSlug = stripSlashes(targetSlug.slice(".".length));
     const [targetCanonical, targetAnchor] = splitAnchor(canonicalSlug);
@@ -186,9 +203,18 @@ function transformLink(src, target, opts) {
   }
 }
 function slugifyPath(s) {
-  return s.split("/").map(
-    (segment) => segment.replace(/\s/g, "-").replace(/&/g, "-and-").replace(/%/g, "-percent").replace(/\?/g, "").replace(/#/g, "")
-  ).join("/").replace(/\/$/, "");
+  return s
+    .split("/")
+    .map((segment) =>
+      segment
+        .replace(/\s/g, "-")
+        .replace(/&/g, "-and-")
+        .replace(/%/g, "-percent")
+        .replace(/\?/g, "")
+        .replace(/#/g, ""),
+    )
+    .join("/")
+    .replace(/\/$/, "");
 }
 function _sluggify(s) {
   return slugifyPath(s);
@@ -219,8 +245,7 @@ function removeAllChildren(el) {
   }
 }
 function registerEscapeHandler(outsideContainer, onEscape) {
-  if (!outsideContainer) return () => {
-  };
+  if (!outsideContainer) return () => {};
   const onClick = (e) => {
     if (!outsideContainer.classList.contains("active")) {
       return;
@@ -253,7 +278,15 @@ function normalizeRelativeURLs(html, baseUrl) {
     const attr = el.hasAttribute("href") ? "href" : "src";
     const val = el.getAttribute(attr);
     if (!val) continue;
-    if (val.startsWith("http://") || val.startsWith("https://") || val.startsWith("mailto:") || val.startsWith("tel:") || val.startsWith("#") || val.startsWith("/") || val.startsWith("data:")) {
+    if (
+      val.startsWith("http://") ||
+      val.startsWith("https://") ||
+      val.startsWith("mailto:") ||
+      val.startsWith("tel:") ||
+      val.startsWith("#") ||
+      val.startsWith("/") ||
+      val.startsWith("data:")
+    ) {
       continue;
     }
     try {
@@ -275,10 +308,20 @@ function classNames(...classes) {
 
 // src/escape.ts
 function escapeHTML(unsafe) {
-  return unsafe.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+  return unsafe
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 function unescapeHTML(html) {
-  return html.replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&#039;", "'");
+  return html
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#039;", "'");
 }
 function childrenToString(children) {
   if (typeof children === "string") return children;
@@ -286,9 +329,15 @@ function childrenToString(children) {
   return String(children ?? "");
 }
 var builtinComponents = {
-  table: (props) => /* @__PURE__ */ jsx("div", { class: "table-container", children: /* @__PURE__ */ jsx("table", { ...props }) }),
-  style: ({ children, ...rest }) => h("style", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } }),
-  script: ({ children, ...rest }) => h("script", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } })
+  table: (props) =>
+    /* @__PURE__ */ jsx("div", {
+      class: "table-container",
+      children: /* @__PURE__ */ jsx("table", { ...props }),
+    }),
+  style: ({ children, ...rest }) =>
+    h("style", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } }),
+  script: ({ children, ...rest }) =>
+    h("script", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } }),
 };
 function htmlToJsx(tree, components) {
   return toJsxRuntime(tree, {
@@ -296,10 +345,81 @@ function htmlToJsx(tree, components) {
     jsx,
     jsxs,
     elementAttributeNameCase: "html",
-    components: { ...builtinComponents, ...components }
+    components: { ...builtinComponents, ...components },
   });
 }
 
-export { capitalize, classNames, endsWith, escapeHTML, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, htmlToJsx, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, normalizeRelativeURLs, pathToRoot, registerEscapeHandler, removeAllChildren, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, slugifyPath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix, unescapeHTML };
+// src/date.ts
+function formatDate(d, locale = "en-US") {
+  return d.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+}
+
+// src/emoji.ts
+var U200D = String.fromCharCode(8205);
+var UFE0Fg = /\uFE0F/g;
+function getIconCode(char) {
+  return toCodePoint(char.indexOf(U200D) < 0 ? char.replace(UFE0Fg, "") : char);
+}
+function toCodePoint(unicodeSurrogates) {
+  const r = [];
+  let c = 0,
+    p = 0,
+    i = 0;
+  while (i < unicodeSurrogates.length) {
+    c = unicodeSurrogates.charCodeAt(i++);
+    if (p) {
+      r.push((65536 + ((p - 55296) << 10) + (c - 56320)).toString(16));
+      p = 0;
+    } else if (55296 <= c && c <= 56319) {
+      p = c;
+    } else {
+      r.push(c.toString(16));
+    }
+  }
+  return r.join("-");
+}
+
+export {
+  capitalize,
+  classNames,
+  endsWith,
+  escapeHTML,
+  formatDate,
+  getAllSegmentPrefixes,
+  getBasePath,
+  getFileExtension,
+  getFullSlug,
+  getFullSlugFromUrl,
+  getIconCode,
+  htmlToJsx,
+  isAbsoluteURL,
+  isFilePath,
+  isFolderPath,
+  isFullSlug,
+  isRelativeURL,
+  isSimpleSlug,
+  joinSegments,
+  normalizeRelativeURLs,
+  pathToRoot,
+  registerEscapeHandler,
+  removeAllChildren,
+  resolveBasePath,
+  resolvePath,
+  resolveRelative,
+  simplifySlug,
+  slugTag,
+  slugifyFilePath,
+  slugifyPath,
+  splitAnchor,
+  stripSlashes,
+  transformInternalLink,
+  transformLink,
+  trimSuffix,
+  unescapeHTML,
+};
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

@@ -1,5 +1,5 @@
-import { Components } from 'hast-util-to-jsx-runtime';
-import { Node } from 'hast';
+import { Components } from "hast-util-to-jsx-runtime";
+import { Node } from "hast";
 
 /**
  * Convert a HAST tree to Preact JSX, with sensible defaults for Quartz plugins.

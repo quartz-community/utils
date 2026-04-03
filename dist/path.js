@@ -1,4 +1,4 @@
-import { slug } from 'github-slugger';
+import { slug } from "github-slugger";
 
 // src/path.ts
 function isFilePath(s) {
@@ -11,7 +11,7 @@ function isFullSlug(s) {
   return validStart && validEnding && !_containsForbiddenCharacters(s);
 }
 function isSimpleSlug(s) {
-  const validStart = !(s.startsWith(".") || s.length > 1 && s.startsWith("/"));
+  const validStart = !(s.startsWith(".") || (s.length > 1 && s.startsWith("/")));
   const validEnding = !endsWith(s, "index");
   return validStart && !_containsForbiddenCharacters(s) && validEnding && !_hasFileExtension(s);
 }
@@ -57,7 +57,10 @@ function joinSegments(...args) {
   if (args.length === 0) {
     return "";
   }
-  let joined = args.filter((segment) => segment !== "" && segment !== "/").map((segment) => stripSlashes(segment)).join("/");
+  let joined = args
+    .filter((segment) => segment !== "" && segment !== "/")
+    .map((segment) => stripSlashes(segment))
+    .join("/");
   const first = args[0];
   const last = args[args.length - 1];
   if (first?.startsWith("/")) {
@@ -103,7 +106,12 @@ function getFileExtension(s) {
   return s.match(/\.[A-Za-z0-9]+$/)?.[0];
 }
 function isFolderPath(fplike) {
-  return fplike.endsWith("/") || endsWith(fplike, "index") || endsWith(fplike, "index.md") || endsWith(fplike, "index.html");
+  return (
+    fplike.endsWith("/") ||
+    endsWith(fplike, "index") ||
+    endsWith(fplike, "index.md") ||
+    endsWith(fplike, "index.html")
+  );
 }
 function getAllSegmentPrefixes(path) {
   const segments = path.split("/");
@@ -114,7 +122,12 @@ function getAllSegmentPrefixes(path) {
   return results;
 }
 function pathToRoot(slug) {
-  let rootPath = slug.split("/").filter((x) => x !== "").slice(0, -1).map((_) => "..").join("/");
+  let rootPath = slug
+    .split("/")
+    .filter((x) => x !== "")
+    .slice(0, -1)
+    .map((_) => "..")
+    .join("/");
   if (rootPath.length === 0) {
     rootPath = ".";
   }
@@ -133,7 +146,10 @@ function splitAnchor(link) {
   return [fp, slugged];
 }
 function slugTag(tag) {
-  return tag.split("/").map((tagSegment) => _sluggify(tagSegment)).join("/");
+  return tag
+    .split("/")
+    .map((tagSegment) => _sluggify(tagSegment))
+    .join("/");
 }
 function transformInternalLink(link) {
   const [fplike, anchor] = splitAnchor(decodeURI(link));
@@ -152,7 +168,8 @@ function transformLink(src, target, opts) {
   if (opts.strategy === "relative") {
     return targetSlug;
   } else {
-    const effectiveSrc = !endsWith(src, "index") && opts.allSlugs.includes(`${src}/index`) ? `${src}/index` : src;
+    const effectiveSrc =
+      !endsWith(src, "index") && opts.allSlugs.includes(`${src}/index`) ? `${src}/index` : src;
     const folderTail = isFolderPath(targetSlug) ? "/" : "";
     const canonicalSlug = stripSlashes(targetSlug.slice(".".length));
     const [targetCanonical, targetAnchor] = splitAnchor(canonicalSlug);
@@ -183,9 +200,18 @@ function transformLink(src, target, opts) {
   }
 }
 function slugifyPath(s) {
-  return s.split("/").map(
-    (segment) => segment.replace(/\s/g, "-").replace(/&/g, "-and-").replace(/%/g, "-percent").replace(/\?/g, "").replace(/#/g, "")
-  ).join("/").replace(/\/$/, "");
+  return s
+    .split("/")
+    .map((segment) =>
+      segment
+        .replace(/\s/g, "-")
+        .replace(/&/g, "-and-")
+        .replace(/%/g, "-percent")
+        .replace(/\?/g, "")
+        .replace(/#/g, ""),
+    )
+    .join("/")
+    .replace(/\/$/, "");
 }
 function _sluggify(s) {
   return slugifyPath(s);
@@ -209,6 +235,33 @@ function _addRelativeToStart(s) {
   return s;
 }
 
-export { endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, slugifyPath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
+export {
+  endsWith,
+  getAllSegmentPrefixes,
+  getBasePath,
+  getFileExtension,
+  getFullSlug,
+  getFullSlugFromUrl,
+  isAbsoluteURL,
+  isFilePath,
+  isFolderPath,
+  isFullSlug,
+  isRelativeURL,
+  isSimpleSlug,
+  joinSegments,
+  pathToRoot,
+  resolveBasePath,
+  resolvePath,
+  resolveRelative,
+  simplifySlug,
+  slugTag,
+  slugifyFilePath,
+  slugifyPath,
+  splitAnchor,
+  stripSlashes,
+  transformInternalLink,
+  transformLink,
+  trimSuffix,
+};
 //# sourceMappingURL=path.js.map
 //# sourceMappingURL=path.js.map

@@ -1,6 +1,6 @@
-import { toJsxRuntime } from 'hast-util-to-jsx-runtime';
-import { jsxs, jsx, Fragment } from 'preact/jsx-runtime';
-import { h } from 'preact';
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import { jsxs, jsx, Fragment } from "preact/jsx-runtime";
+import { h } from "preact";
 
 // src/jsx.tsx
 function childrenToString(children) {
@@ -9,9 +9,15 @@ function childrenToString(children) {
   return String(children ?? "");
 }
 var builtinComponents = {
-  table: (props) => /* @__PURE__ */ jsx("div", { class: "table-container", children: /* @__PURE__ */ jsx("table", { ...props }) }),
-  style: ({ children, ...rest }) => h("style", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } }),
-  script: ({ children, ...rest }) => h("script", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } })
+  table: (props) =>
+    /* @__PURE__ */ jsx("div", {
+      class: "table-container",
+      children: /* @__PURE__ */ jsx("table", { ...props }),
+    }),
+  style: ({ children, ...rest }) =>
+    h("style", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } }),
+  script: ({ children, ...rest }) =>
+    h("script", { ...rest, dangerouslySetInnerHTML: { __html: childrenToString(children) } }),
 };
 function htmlToJsx(tree, components) {
   return toJsxRuntime(tree, {
@@ -19,7 +25,7 @@ function htmlToJsx(tree, components) {
     jsx,
     jsxs,
     elementAttributeNameCase: "html",
-    components: { ...builtinComponents, ...components }
+    components: { ...builtinComponents, ...components },
   });
 }
 

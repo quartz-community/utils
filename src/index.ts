@@ -36,3 +36,6 @@ export { classNames, capitalize } from "./lang.js";
 export { escapeHTML, unescapeHTML } from "./escape.js";
 
 export { htmlToJsx } from "./jsx.js";
+
+export { formatDate } from "./date.js";
+export { getIconCode } from "./emoji.js";

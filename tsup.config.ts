@@ -7,6 +7,8 @@ export default defineConfig({
     dom: "src/dom.ts",
     lang: "src/lang.ts",
     escape: "src/escape.ts",
+    date: "src/date.ts",
+    emoji: "src/emoji.ts",
     jsx: "src/jsx.tsx",
   },
   format: ["esm"],

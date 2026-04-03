@@ -1,17 +1,17 @@
-import { FullSlug, FilePath } from '@quartz-community/types';
-export { FilePath, FullSlug } from '@quartz-community/types';
+import { FullSlug, FilePath } from "@quartz-community/types";
+export { FilePath, FullSlug } from "@quartz-community/types";
 
 /** No '/index' ending, no file extension, can have trailing slash for folders. */
 type SimpleSlug = string & {
-    _brand: "SimpleSlug";
+  _brand: "SimpleSlug";
 };
 /** Starts with './' or '../', used for navigation. */
 type RelativeURL = string & {
-    _brand: "RelativeURL";
+  _brand: "RelativeURL";
 };
 interface TransformOptions {
-    strategy: "absolute" | "relative" | "shortest";
-    allSlugs: FullSlug[];
+  strategy: "absolute" | "relative" | "shortest";
+  allSlugs: FullSlug[];
 }
 declare function isFilePath(s: string): s is FilePath;
 declare function isFullSlug(s: string): s is FullSlug;
@@ -49,4 +49,34 @@ declare function transformLink(src: FullSlug, target: string, opts: TransformOpt
  */
 declare function slugifyPath(s: string): string;
 
-export { type RelativeURL, type SimpleSlug, type TransformOptions, endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, slugifyPath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
+export {
+  type RelativeURL,
+  type SimpleSlug,
+  type TransformOptions,
+  endsWith,
+  getAllSegmentPrefixes,
+  getBasePath,
+  getFileExtension,
+  getFullSlug,
+  getFullSlugFromUrl,
+  isAbsoluteURL,
+  isFilePath,
+  isFolderPath,
+  isFullSlug,
+  isRelativeURL,
+  isSimpleSlug,
+  joinSegments,
+  pathToRoot,
+  resolveBasePath,
+  resolvePath,
+  resolveRelative,
+  simplifySlug,
+  slugTag,
+  slugifyFilePath,
+  slugifyPath,
+  splitAnchor,
+  stripSlashes,
+  transformInternalLink,
+  transformLink,
+  trimSuffix,
+};

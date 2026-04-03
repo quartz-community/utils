@@ -48,6 +48,14 @@
       "types": "./dist/jsx.d.ts",
       "import": "./dist/jsx.js"
     },
+    "./date": {
+      "types": "./dist/date.d.ts",
+      "import": "./dist/date.js"
+    },
+    "./emoji": {
+      "types": "./dist/emoji.d.ts",
+      "import": "./dist/emoji.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
