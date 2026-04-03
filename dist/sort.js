@@ -9,13 +9,13 @@ function getDate(data) {
 }
 function byDateAndAlphabetical() {
   return (f1, f2) => {
-    const f1Dates = f1.dates;
-    const f2Dates = f2.dates;
-    if (f1Dates && f2Dates) {
-      return getDate(f2).getTime() - getDate(f1).getTime();
-    } else if (f1Dates && !f2Dates) {
+    const f1Date = getDate(f1);
+    const f2Date = getDate(f2);
+    if (f1Date && f2Date) {
+      return f2Date.getTime() - f1Date.getTime();
+    } else if (f1Date && !f2Date) {
       return -1;
-    } else if (!f1Dates && f2Dates) {
+    } else if (!f1Date && f2Date) {
       return 1;
     }
     const f1Title = (f1.frontmatter?.title ?? "").toLowerCase();
