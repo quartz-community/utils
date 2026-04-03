@@ -3,9 +3,7 @@ import type { QuartzPluginData, ValidDateType, SortFn } from "@quartz-community/
 export function getDate(data: QuartzPluginData): Date | undefined {
   const defaultDateType = data.defaultDateType as ValidDateType | undefined;
   if (!defaultDateType) {
-    throw new Error(
-      "Field 'defaultDateType' was not set. Ensure the CreatedModifiedDate plugin is configured with a 'defaultDateType' option.",
-    );
+    return undefined;
   }
   const dates = data.dates as Record<ValidDateType, Date> | undefined;
   return dates?.[defaultDateType];

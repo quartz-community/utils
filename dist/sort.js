@@ -2,9 +2,7 @@
 function getDate(data) {
   const defaultDateType = data.defaultDateType;
   if (!defaultDateType) {
-    throw new Error(
-      "Field 'defaultDateType' was not set. Ensure the CreatedModifiedDate plugin is configured with a 'defaultDateType' option.",
-    );
+    return void 0;
   }
   const dates = data.dates;
   return dates?.[defaultDateType];
