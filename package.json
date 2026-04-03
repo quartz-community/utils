@@ -56,6 +56,10 @@
       "types": "./dist/emoji.d.ts",
       "import": "./dist/emoji.js"
     },
+    "./sort": {
+      "types": "./dist/sort.d.ts",
+      "import": "./dist/sort.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -74,9 +78,9 @@
     "check": "npm run typecheck && npm run lint && npm run format && npm run test"
   },
   "peerDependencies": {
-    "preact": "^10.0.0",
+    "github-slugger": "^2.0.0",
     "hast-util-to-jsx-runtime": "^2.3.6",
-    "github-slugger": "^2.0.0"
+    "preact": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
@@ -84,10 +88,13 @@
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "github-slugger": "^2.0.0",
+    "hast": "^0.0.2",
+    "hast-util-to-jsx-runtime": "^2.3.6",
     "prettier": "^3.6.2",
-    "vitest": "^2.1.9",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   },
   "engines": {
     "node": ">=22",

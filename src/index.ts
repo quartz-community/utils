@@ -39,3 +39,4 @@ export { htmlToJsx } from "./jsx.js";
 
 export { formatDate } from "./date.js";
 export { getIconCode } from "./emoji.js";
+export { getDate, byDateAndAlphabetical } from "./sort.js";

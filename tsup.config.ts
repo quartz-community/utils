@@ -10,6 +10,7 @@ export default defineConfig({
     date: "src/date.ts",
     emoji: "src/emoji.ts",
     jsx: "src/jsx.tsx",
+    sort: "src/sort.ts",
   },
   format: ["esm"],
   dts: true,
