@@ -9,10 +9,11 @@ import {
   stripSlashes,
   isFolderPath,
   getAllSegmentPrefixes,
+  slugifyFilePath,
   slugifyPath,
   transformLink,
 } from "../src/path.js";
-import type { FullSlug, TransformOptions } from "../src/path.js";
+import type { FilePath, FullSlug, TransformOptions } from "../src/path.js";
 
 describe("simplifySlug", () => {
   it("removes /index suffix", () => {
@@ -87,6 +88,118 @@ describe("stripSlashes", () => {
 
   it("removes only leading slash when specified", () => {
     expect(stripSlashes("/path/", true)).toBe("path/");
+  });
+});
+
+describe("slugifyFilePath", () => {
+  const slugify = (fp: string) => slugifyFilePath(fp as FilePath);
+
+  describe("basic path handling", () => {
+    it("strips .md extension from markdown files", () => {
+      expect(slugify("content/post.md")).toBe("content/post");
+    });
+
+    it("strips .html extension", () => {
+      expect(slugify("content/post.html")).toBe("content/post");
+    });
+
+    it("preserves non-markdown extensions", () => {
+      expect(slugify("content/image.png")).toBe("content/image.png");
+    });
+
+    it("strips leading slash", () => {
+      expect(slugify("/content/post.md")).toBe("content/post");
+    });
+
+    it("handles top-level index.md", () => {
+      expect(slugify("index.md")).toBe("index");
+    });
+
+    it("handles nested index.md", () => {
+      expect(slugify("content/index.md")).toBe("content/index");
+    });
+  });
+
+  describe("Hugo _index convention", () => {
+    it("rewrites trailing _index to index", () => {
+      expect(slugify("content/_index.md")).toBe("content/index");
+    });
+
+    it("rewrites _index inside nested path", () => {
+      expect(slugify("a/b/_index.md")).toBe("a/b/index");
+    });
+  });
+
+  describe("Obsidian Folder Notes convention", () => {
+    it("rewrites folder/folder.md to folder/index", () => {
+      expect(slugify("characters/characters.md")).toBe("characters/index");
+    });
+
+    it("rewrites nested folder/folder.md to folder/index", () => {
+      expect(slugify("fiction/books/books.md")).toBe("fiction/books/index");
+    });
+
+    it("rewrites deeply nested folder/folder.md", () => {
+      expect(slugify("a/b/c/d/d.md")).toBe("a/b/c/d/index");
+    });
+
+    it("does NOT rewrite single-segment slugs (parentFolder storage is out of scope)", () => {
+      expect(slugify("characters.md")).toBe("characters");
+    });
+
+    it("does NOT rewrite when last two segments differ", () => {
+      expect(slugify("characters/alice.md")).toBe("characters/alice");
+    });
+
+    it("does NOT rewrite when basename matches a deeper ancestor but not direct parent", () => {
+      expect(slugify("characters/sub/characters.md")).toBe("characters/sub/characters");
+    });
+
+    it("rewrites even when the inner folder is inside a same-named outer folder", () => {
+      expect(slugify("a/a/a.md")).toBe("a/a/index");
+    });
+
+    it("leaves index.md as the canonical form unchanged", () => {
+      expect(slugify("characters/index.md")).toBe("characters/index");
+    });
+
+    it("does not double-apply when folder literally named 'index' has index.md", () => {
+      expect(slugify("index/index.md")).toBe("index/index");
+    });
+
+    it("handles nested folder literally named 'index'", () => {
+      expect(slugify("docs/index/index.md")).toBe("docs/index/index");
+    });
+
+    it("rewrites slugified paths with special characters", () => {
+      expect(slugify("my folder/my folder.md")).toBe("my-folder/index");
+    });
+  });
+
+  describe("interaction with simplifySlug (end-to-end canonicalization)", () => {
+    it("folder/folder.md routes to canonical folder URL via simplifySlug", () => {
+      expect(simplifySlug(slugify("characters/characters.md"))).toBe("characters/");
+    });
+
+    it("folder/index.md and folder/folder.md produce identical simplified URLs", () => {
+      expect(simplifySlug(slugify("characters/characters.md"))).toBe(
+        simplifySlug(slugify("characters/index.md")),
+      );
+    });
+
+    it("top-level index.md simplifies to root", () => {
+      expect(simplifySlug(slugify("index.md"))).toBe("/");
+    });
+  });
+
+  describe("interaction with isFolderPath", () => {
+    it("classifies folder/folder.md output as a folder path", () => {
+      expect(isFolderPath(slugify("characters/characters.md"))).toBe(true);
+    });
+
+    it("classifies regular file as non-folder", () => {
+      expect(isFolderPath(slugify("characters/alice.md"))).toBe(false);
+    });
   });
 });
 

@@ -51,6 +51,11 @@ function slugifyFilePath(fp, excludeExt) {
   if (endsWith(slug, "_index")) {
     slug = slug.replace(/_index$/, "index");
   }
+  const segments = slug.split("/");
+  if (segments.length >= 2 && segments[segments.length - 1] === segments[segments.length - 2]) {
+    segments[segments.length - 1] = "index";
+    slug = segments.join("/");
+  }
   return slug + (finalExt ?? "");
 }
 function joinSegments(...args) {

@@ -75,6 +75,19 @@ export function slugifyFilePath(fp: FilePath, excludeExt?: boolean): FullSlug {
     slug = slug.replace(/_index$/, "index");
   }
 
+  // Obsidian "Folder Notes" convention (insideFolder storage): a file named the
+  // same as its parent folder is treated as the folder's landing page. Rewrite
+  // `folder/folder` → `folder/index` so every downstream consumer (trie, link
+  // resolver, simplifySlug, isFolderPath) sees the canonical Quartz slug shape
+  // and Just Works. A top-level single-segment slug is NOT rewritten — that
+  // represents Obsidian's `parentFolder` storage mode, which Quartz already
+  // routes as a regular top-level page.
+  const segments = slug.split("/");
+  if (segments.length >= 2 && segments[segments.length - 1] === segments[segments.length - 2]) {
+    segments[segments.length - 1] = "index";
+    slug = segments.join("/");
+  }
+
   return (slug + (finalExt ?? "")) as FullSlug;
 }
 
