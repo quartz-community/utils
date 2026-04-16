@@ -44,8 +44,10 @@ declare function transformInternalLink(link: string): RelativeURL;
 declare function transformLink(src: FullSlug, target: string, opts: TransformOptions): RelativeURL;
 /**
  * Slugify a file path for use as an href.
- * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #.
- * Operates per segment so directory separators are preserved.
+ * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #, and
+ * lowercases the result so that link matching is case-insensitive (matching
+ * Obsidian's link-resolution semantics). Operates per segment so directory
+ * separators are preserved.
  */
 declare function slugifyPath(s: string): string;
 

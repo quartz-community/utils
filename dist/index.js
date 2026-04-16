@@ -216,7 +216,8 @@ function slugifyPath(s) {
         .replace(/&/g, "-and-")
         .replace(/%/g, "-percent")
         .replace(/\?/g, "")
-        .replace(/#/g, ""),
+        .replace(/#/g, "")
+        .toLowerCase(),
     )
     .join("/")
     .replace(/\/$/, "");

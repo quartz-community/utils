@@ -255,11 +255,11 @@ describe("resolveBasePath", () => {
 
 describe("slugifyPath", () => {
   it("replaces spaces with hyphens", () => {
-    expect(slugifyPath("Arcanist's Folly")).toBe("Arcanist's-Folly");
+    expect(slugifyPath("Arcanist's Folly")).toBe("arcanist's-folly");
   });
 
   it("replaces ampersands with -and-", () => {
-    expect(slugifyPath("Arts & Crafts")).toBe("Arts--and--Crafts");
+    expect(slugifyPath("Arts & Crafts")).toBe("arts--and--crafts");
   });
 
   it("replaces percent with -percent", () => {
@@ -267,12 +267,12 @@ describe("slugifyPath", () => {
   });
 
   it("removes question marks and hash signs", () => {
-    expect(slugifyPath("What?#Section")).toBe("WhatSection");
+    expect(slugifyPath("What?#Section")).toBe("whatsection");
   });
 
   it("handles multi-segment paths", () => {
     expect(slugifyPath("Compendium/Species/Ratkin/Deific Exaltation")).toBe(
-      "Compendium/Species/Ratkin/Deific-Exaltation",
+      "compendium/species/ratkin/deific-exaltation",
     );
   });
 
@@ -280,8 +280,8 @@ describe("slugifyPath", () => {
     expect(slugifyPath("folder/")).toBe("folder");
   });
 
-  it("leaves clean paths unchanged", () => {
-    expect(slugifyPath("Compendium/Species/Dryad/Apple")).toBe("Compendium/Species/Dryad/Apple");
+  it("lowercases for case-insensitive matching (Obsidian parity)", () => {
+    expect(slugifyPath("Compendium/Species/Dryad/Apple")).toBe("compendium/species/dryad/apple");
   });
 });
 
@@ -362,137 +362,92 @@ describe("transformLink", () => {
 
   describe("multi-segment partial path (shortest)", () => {
     const multiSegSlugs = [
-      "Compendium/Species/Elf/Wood",
-      "Compendium/Species/Elf/index",
-      "Compendium/Species/Elf/Eladrin",
-      "Compendium/Spells/index",
-      "Compendium/Spells/Bane",
-      "Campaigns/Unnamed/People/index",
+      "compendium/species/elf/wood",
+      "compendium/species/elf/index",
+      "compendium/species/elf/eladrin",
+      "compendium/spells/index",
+      "compendium/spells/bane",
+      "campaigns/unnamed/people/index",
       "index",
     ] as FullSlug[];
 
     const opts: TransformOptions = { strategy: "shortest", allSlugs: multiSegSlugs };
 
-    it("resolves multi-segment path Species/Elf/Wood to unique match", () => {
-      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
-      expect(transformLink(cur, "Species/Elf/Wood", opts)).toBe(
-        "../../../Compendium/Species/Elf/Wood",
+    it("resolves multi-segment path species/elf/wood to unique match", () => {
+      const cur = "campaigns/unnamed/people/index" as FullSlug;
+      expect(transformLink(cur, "species/elf/wood", opts)).toBe(
+        "../../../compendium/species/elf/wood",
       );
     });
 
-    it("resolves multi-segment path Species/Elf/index to folder page", () => {
-      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
-      expect(transformLink(cur, "Species/Elf/index", opts)).toBe(
-        "../../../Compendium/Species/Elf/",
-      );
-    });
-
-    it("falls back to absolute when multi-segment path has no match", () => {
-      const cur = "index" as FullSlug;
-      expect(transformLink(cur, "Species/Elf/NoSuchPage", opts)).toBe("./Species/Elf/NoSuchPage");
-    });
-
-    it("resolves single-segment name that is unique", () => {
-      const cur = "index" as FullSlug;
-      expect(transformLink(cur, "Bane", opts)).toBe("./Compendium/Spells/Bane");
-    });
-
-    it("resolves exact full path as multi-segment match", () => {
-      const cur = "index" as FullSlug;
-      expect(transformLink(cur, "Compendium/Species/Elf/Eladrin", opts)).toBe(
-        "./Compendium/Species/Elf/Eladrin",
-      );
-    });
-  });
-
-  describe("multi-segment partial path (shortest)", () => {
-    const multiSegSlugs = [
-      "Compendium/Species/Elf/Wood",
-      "Compendium/Species/Elf/index",
-      "Compendium/Species/Elf/Eladrin",
-      "Compendium/Spells/index",
-      "Compendium/Spells/Bane",
-      "Campaigns/Unnamed/People/index",
-      "index",
-    ] as FullSlug[];
-
-    const opts: TransformOptions = { strategy: "shortest", allSlugs: multiSegSlugs };
-
-    it("resolves multi-segment path Species/Elf/Wood to unique match", () => {
-      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
-      expect(transformLink(cur, "Species/Elf/Wood", opts)).toBe(
-        "../../../Compendium/Species/Elf/Wood",
-      );
-    });
-
-    it("resolves multi-segment path Species/Elf/index to folder page", () => {
-      const cur = "Campaigns/Unnamed/People/index" as FullSlug;
-      expect(transformLink(cur, "Species/Elf/index", opts)).toBe(
-        "../../../Compendium/Species/Elf/",
+    it("resolves multi-segment path species/elf/index to folder page", () => {
+      const cur = "campaigns/unnamed/people/index" as FullSlug;
+      expect(transformLink(cur, "species/elf/index", opts)).toBe(
+        "../../../compendium/species/elf/",
       );
     });
 
     it("falls back to absolute when multi-segment path has no match", () => {
       const cur = "index" as FullSlug;
-      expect(transformLink(cur, "Species/Elf/NoSuchPage", opts)).toBe("./Species/Elf/NoSuchPage");
+      expect(transformLink(cur, "species/elf/nosuchpage", opts)).toBe("./species/elf/nosuchpage");
     });
 
     it("resolves single-segment name that is unique", () => {
       const cur = "index" as FullSlug;
-      expect(transformLink(cur, "Bane", opts)).toBe("./Compendium/Spells/Bane");
+      expect(transformLink(cur, "bane", opts)).toBe("./compendium/spells/bane");
     });
 
     it("resolves exact full path as multi-segment match", () => {
       const cur = "index" as FullSlug;
-      expect(transformLink(cur, "Compendium/Species/Elf/Eladrin", opts)).toBe(
-        "./Compendium/Species/Elf/Eladrin",
+      expect(transformLink(cur, "compendium/species/elf/eladrin", opts)).toBe(
+        "./compendium/species/elf/eladrin",
       );
     });
   });
 
   describe("folder page bug regression", () => {
     const spellSlugs = [
-      "Compendium/Spells/index",
-      "Compendium/Spells/Bane",
-      "Compendium/Spells/Absorb-Elements",
-      "Compendium/Species/Elf/Eladrin",
+      "compendium/spells/index",
+      "compendium/spells/bane",
+      "compendium/spells/absorb-elements",
+      "compendium/species/elf/eladrin",
       "index",
     ] as FullSlug[];
 
     it("does not double the folder segment for absolute strategy", () => {
       const opts: TransformOptions = { strategy: "absolute", allSlugs: spellSlugs };
-      const cur = "Compendium/Spells" as FullSlug;
-      expect(transformLink(cur, "Compendium/Spells/Bane", opts)).toBe(
-        "../../Compendium/Spells/Bane",
+      const cur = "compendium/spells" as FullSlug;
+      expect(transformLink(cur, "compendium/spells/bane", opts)).toBe(
+        "../../compendium/spells/bane",
       );
-      expect(transformLink(cur, "Compendium/Spells/Absorb-Elements", opts)).toBe(
-        "../../Compendium/Spells/Absorb-Elements",
+      expect(transformLink(cur, "compendium/spells/absorb-elements", opts)).toBe(
+        "../../compendium/spells/absorb-elements",
       );
     });
 
     it("does not double the folder segment for shortest strategy", () => {
       const opts: TransformOptions = { strategy: "shortest", allSlugs: spellSlugs };
-      const cur = "Compendium/Spells" as FullSlug;
-      expect(transformLink(cur, "Bane", opts)).toBe("../../Compendium/Spells/Bane");
-      expect(transformLink(cur, "Absorb-Elements", opts)).toBe(
-        "../../Compendium/Spells/Absorb-Elements",
+      const cur = "compendium/spells" as FullSlug;
+      expect(transformLink(cur, "bane", opts)).toBe("../../compendium/spells/bane");
+      expect(transformLink(cur, "absorb-elements", opts)).toBe(
+        "../../compendium/spells/absorb-elements",
       );
     });
 
     it("matches explicit index slug behavior", () => {
       const opts: TransformOptions = { strategy: "absolute", allSlugs: spellSlugs };
-      const fromFolder = "Compendium/Spells" as FullSlug;
-      const fromIndex = "Compendium/Spells/index" as FullSlug;
-      expect(transformLink(fromFolder, "Compendium/Spells/Bane", opts)).toBe(
-        transformLink(fromIndex, "Compendium/Spells/Bane", opts),
+      const fromFolder = "compendium/spells" as FullSlug;
+      const fromIndex = "compendium/spells/index" as FullSlug;
+      expect(transformLink(fromFolder, "compendium/spells/bane", opts)).toBe(
+        transformLink(fromIndex, "compendium/spells/bane", opts),
       );
     });
 
     it("does not affect non-folder pages", () => {
       const opts: TransformOptions = { strategy: "absolute", allSlugs: spellSlugs };
-      const cur = "Compendium/Spells/Bane" as FullSlug;
-      expect(transformLink(cur, "Compendium/Spells/Absorb-Elements", opts)).toBe(
-        "../../Compendium/Spells/Absorb-Elements",
+      const cur = "compendium/spells/bane" as FullSlug;
+      expect(transformLink(cur, "compendium/spells/absorb-elements", opts)).toBe(
+        "../../compendium/spells/absorb-elements",
       );
     });
   });

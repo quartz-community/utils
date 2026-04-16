@@ -282,8 +282,10 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
 
 /**
  * Slugify a file path for use as an href.
- * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #.
- * Operates per segment so directory separators are preserved.
+ * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #, and
+ * lowercases the result so that link matching is case-insensitive (matching
+ * Obsidian's link-resolution semantics). Operates per segment so directory
+ * separators are preserved.
  */
 export function slugifyPath(s: string): string {
   return s
@@ -294,7 +296,8 @@ export function slugifyPath(s: string): string {
         .replace(/&/g, "-and-")
         .replace(/%/g, "-percent")
         .replace(/\?/g, "")
-        .replace(/#/g, ""),
+        .replace(/#/g, "")
+        .toLowerCase(),
     )
     .join("/")
     .replace(/\/$/, "");
