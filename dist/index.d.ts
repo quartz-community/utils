@@ -15,6 +15,7 @@ export {
   isRelativeURL,
   isSimpleSlug,
   joinSegments,
+  normalizeHastElement,
   pathToRoot,
   resolveBasePath,
   resolvePath,

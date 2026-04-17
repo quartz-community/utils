@@ -25,6 +25,7 @@ export {
   slugTag,
   transformInternalLink,
   transformLink,
+  normalizeHastElement,
 } from "./path.js";
 
 export type { FilePath, FullSlug, SimpleSlug, RelativeURL, TransformOptions } from "./path.js";
