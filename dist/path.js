@@ -219,6 +219,24 @@ function slugifyPath(s) {
     .join("/")
     .replace(/\/$/, "");
 }
+function normalizeHastElement(rawEl, curBase, newBase) {
+  const el = structuredClone(rawEl);
+  _rebaseHastElement(el, "src", curBase, newBase);
+  _rebaseHastElement(el, "href", curBase, newBase);
+  if (el.children) {
+    el.children = el.children.map((child) =>
+      child.type === "element" ? normalizeHastElement(child, curBase, newBase) : child,
+    );
+  }
+  return el;
+}
+function _rebaseHastElement(el, attr, curBase, newBase) {
+  const value = el.properties?.[attr];
+  if (value === void 0 || value === null) return;
+  const href = String(value);
+  if (!isRelativeURL(href)) return;
+  el.properties[attr] = joinSegments(resolveRelative(curBase, newBase), "..", href);
+}
 function _sluggify(s) {
   return slugifyPath(s);
 }
@@ -255,6 +273,7 @@ export {
   isRelativeURL,
   isSimpleSlug,
   joinSegments,
+  normalizeHastElement,
   pathToRoot,
   resolveBasePath,
   resolvePath,

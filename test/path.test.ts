@@ -12,8 +12,10 @@ import {
   slugifyFilePath,
   slugifyPath,
   transformLink,
+  normalizeHastElement,
 } from "../src/path.js";
 import type { FilePath, FullSlug, TransformOptions } from "../src/path.js";
+import type { Element as HastElement } from "hast";
 
 describe("simplifySlug", () => {
   it("removes /index suffix", () => {
@@ -450,5 +452,121 @@ describe("transformLink", () => {
         "../../compendium/spells/absorb-elements",
       );
     });
+  });
+});
+
+describe("normalizeHastElement", () => {
+  const makeEl = (href: string, tagName = "a"): HastElement => ({
+    type: "element",
+    tagName,
+    properties: { href },
+    children: [{ type: "text", value: "link" }],
+  });
+
+  it("rebases a relative href when embedding deeper content into shallower context", () => {
+    const el = makeEl("../layout#page-frames");
+    const out = normalizeHastElement(
+      el,
+      "canvas.canvas" as FullSlug,
+      "plugins/canvaspage" as FullSlug,
+    );
+    const href = out.properties!.href as string;
+    expect(
+      new URL(href, "https://example.com/canvas.canvas").pathname +
+        new URL(href, "https://example.com/canvas.canvas").hash,
+    ).toBe("/layout#page-frames");
+  });
+
+  it("rebases a relative href when embedding shallower content into deeper context", () => {
+    const el = makeEl("./sibling");
+    const out = normalizeHastElement(
+      el,
+      "features/canvas" as FullSlug,
+      "canvas.canvas" as FullSlug,
+    );
+    const href = out.properties!.href as string;
+    expect(new URL(href, "https://example.com/features/canvas").pathname).toBe("/sibling");
+  });
+
+  it("produces a href that resolves identically when curBase equals newBase", () => {
+    const el = makeEl("./foo");
+    const out = normalizeHastElement(el, "index" as FullSlug, "index" as FullSlug);
+    const href = out.properties!.href as string;
+    expect(new URL(href, "https://example.com/").pathname).toBe("/foo");
+  });
+
+  it("preserves anchor fragments", () => {
+    const el = makeEl("../target#section-two");
+    const out = normalizeHastElement(el, "a/b" as FullSlug, "a/b/c" as FullSlug);
+    const href = out.properties!.href as string;
+    const url = new URL(href, "https://example.com/a/b");
+    expect(url.hash).toBe("#section-two");
+  });
+
+  it("passes absolute URLs through unchanged", () => {
+    const el = makeEl("https://example.com/external");
+    const out = normalizeHastElement(el, "index" as FullSlug, "other" as FullSlug);
+    expect(out.properties!.href).toBe("https://example.com/external");
+  });
+
+  it("passes root-relative URLs through unchanged", () => {
+    const el = makeEl("/absolute/path");
+    const out = normalizeHastElement(el, "index" as FullSlug, "other" as FullSlug);
+    expect(out.properties!.href).toBe("/absolute/path");
+  });
+
+  it("rebases src attributes as well as href", () => {
+    const el: HastElement = {
+      type: "element",
+      tagName: "img",
+      properties: { src: "../image.png" },
+      children: [],
+    };
+    const out = normalizeHastElement(el, "index" as FullSlug, "deep/page" as FullSlug);
+    const src = out.properties!.src as string;
+    expect(new URL(src, "https://example.com/").pathname).toBe("/image.png");
+  });
+
+  it("leaves elements without href or src unchanged", () => {
+    const el: HastElement = {
+      type: "element",
+      tagName: "p",
+      properties: {},
+      children: [{ type: "text", value: "plain text" }],
+    };
+    const out = normalizeHastElement(el, "a" as FullSlug, "b" as FullSlug);
+    expect(out).toEqual(el);
+  });
+
+  it("recurses into children to rebase nested elements", () => {
+    const el: HastElement = {
+      type: "element",
+      tagName: "p",
+      properties: {},
+      children: [
+        { type: "text", value: "see " },
+        {
+          type: "element",
+          tagName: "a",
+          properties: { href: "../layout" },
+          children: [{ type: "text", value: "layout" }],
+        },
+      ],
+    };
+    const out = normalizeHastElement(
+      el,
+      "canvas.canvas" as FullSlug,
+      "plugins/canvaspage" as FullSlug,
+    );
+    const innerAnchor = out.children[1] as HastElement;
+    const href = innerAnchor.properties!.href as string;
+    expect(new URL(href, "https://example.com/canvas.canvas").pathname).toBe("/layout");
+  });
+
+  it("does not mutate the input element", () => {
+    const el = makeEl("../layout");
+    const originalHref = el.properties!.href;
+    normalizeHastElement(el, "canvas.canvas" as FullSlug, "plugins/canvaspage" as FullSlug);
+    expect(el.properties!.href).toBe(originalHref);
   });
 });

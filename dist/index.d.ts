@@ -37,5 +37,5 @@ export { formatDate } from "./date.js";
 export { getIconCode } from "./emoji.js";
 export { byDateAndAlphabetical, getDate } from "./sort.js";
 export { FilePath, FullSlug } from "@quartz-community/types";
-import "hast-util-to-jsx-runtime";
 import "hast";
+import "hast-util-to-jsx-runtime";

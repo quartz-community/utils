@@ -1,4 +1,5 @@
 import { slug as slugAnchor } from "github-slugger";
+import type { Element as HastElement } from "hast";
 import type { FilePath, FullSlug } from "@quartz-community/types";
 
 export type { FilePath, FullSlug };
@@ -301,6 +302,51 @@ export function slugifyPath(s: string): string {
     )
     .join("/")
     .replace(/\/$/, "");
+}
+
+/**
+ * Re-base the relative `href` and `src` attributes of a HAST element so that
+ * links inside content originally resolved relative to `newBase` remain valid
+ * when the element is embedded at a page with slug `curBase`.
+ *
+ * Used for transclusions and cross-slug HAST embedding (Quartz core's
+ * `renderPage` transclude expansion, canvas-page's embedded file-nodes, and
+ * any plugin that takes `vfile.data.htmlAst` from one page and renders it
+ * inside another). Absolute URLs pass through unchanged.
+ *
+ * The element (and its children) are deep-cloned via `structuredClone`, so
+ * the original HAST tree is never mutated.
+ */
+export function normalizeHastElement<T extends HastElement>(
+  rawEl: T,
+  curBase: FullSlug,
+  newBase: FullSlug,
+): T {
+  const el = structuredClone(rawEl);
+  _rebaseHastElement(el, "src", curBase, newBase);
+  _rebaseHastElement(el, "href", curBase, newBase);
+  if (el.children) {
+    el.children = el.children.map((child) =>
+      child.type === "element"
+        ? (normalizeHastElement(child as HastElement, curBase, newBase) as typeof child)
+        : child,
+    );
+  }
+  return el;
+}
+
+/** @internal */
+function _rebaseHastElement(
+  el: HastElement,
+  attr: "href" | "src",
+  curBase: FullSlug,
+  newBase: FullSlug,
+): void {
+  const value = el.properties?.[attr];
+  if (value === undefined || value === null) return;
+  const href = String(value);
+  if (!isRelativeURL(href)) return;
+  el.properties![attr] = joinSegments(resolveRelative(curBase, newBase), "..", href);
 }
 
 /** @internal */

@@ -1,3 +1,4 @@
+import { Element } from "hast";
 import { FullSlug, FilePath } from "@quartz-community/types";
 export { FilePath, FullSlug } from "@quartz-community/types";
 
@@ -50,6 +51,24 @@ declare function transformLink(src: FullSlug, target: string, opts: TransformOpt
  * separators are preserved.
  */
 declare function slugifyPath(s: string): string;
+/**
+ * Re-base the relative `href` and `src` attributes of a HAST element so that
+ * links inside content originally resolved relative to `newBase` remain valid
+ * when the element is embedded at a page with slug `curBase`.
+ *
+ * Used for transclusions and cross-slug HAST embedding (Quartz core's
+ * `renderPage` transclude expansion, canvas-page's embedded file-nodes, and
+ * any plugin that takes `vfile.data.htmlAst` from one page and renders it
+ * inside another). Absolute URLs pass through unchanged.
+ *
+ * The element (and its children) are deep-cloned via `structuredClone`, so
+ * the original HAST tree is never mutated.
+ */
+declare function normalizeHastElement<T extends Element>(
+  rawEl: T,
+  curBase: FullSlug,
+  newBase: FullSlug,
+): T;
 
 export {
   type RelativeURL,
@@ -68,6 +87,7 @@ export {
   isRelativeURL,
   isSimpleSlug,
   joinSegments,
+  normalizeHastElement,
   pathToRoot,
   resolveBasePath,
   resolvePath,
