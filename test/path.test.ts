@@ -11,6 +11,7 @@ import {
   getAllSegmentPrefixes,
   slugifyFilePath,
   slugifyPath,
+  transformInternalLink,
   transformLink,
   normalizeHastElement,
 } from "../src/path.js";
@@ -284,6 +285,52 @@ describe("slugifyPath", () => {
 
   it("lowercases for case-insensitive matching (Obsidian parity)", () => {
     expect(slugifyPath("Compendium/Species/Dryad/Apple")).toBe("compendium/species/dryad/apple");
+  });
+});
+
+describe("transformInternalLink", () => {
+  it("returns folder path for folder note convention (same-name parent)", () => {
+    expect(transformInternalLink("characters/characters")).toBe("./characters/");
+  });
+
+  it("returns folder path for folder note with spaces", () => {
+    expect(transformInternalLink("My Folder/My Folder")).toBe("./my-folder/");
+  });
+
+  it("returns folder path for deep folder note", () => {
+    expect(transformInternalLink("a/b/c/d/d")).toBe("./a/b/c/d/");
+  });
+
+  it("preserves explicit trailing slash", () => {
+    expect(transformInternalLink("tags/")).toBe("./tags/");
+  });
+
+  it("returns folder path for explicit index", () => {
+    expect(transformInternalLink("content/index")).toBe("./content/");
+  });
+
+  it("does not add trailing slash for regular nested links", () => {
+    expect(transformInternalLink("My Folder/My Note")).toBe("./my-folder/my-note");
+  });
+
+  it("handles spaces in nested paths", () => {
+    expect(transformInternalLink("content/with spaces")).toBe("./content/with-spaces");
+  });
+
+  it("handles anchor on folder note link", () => {
+    expect(transformInternalLink("My Folder/My Folder#heading")).toBe("./my-folder/#heading");
+  });
+
+  it("handles percent-encoded spaces", () => {
+    expect(transformInternalLink("My%20Folder/My%20Note")).toBe("./my-folder/my-note");
+  });
+
+  it("handles simple single-segment link", () => {
+    expect(transformInternalLink("My Note")).toBe("./my-note");
+  });
+
+  it("returns dot for empty input", () => {
+    expect(transformInternalLink("")).toBe(".");
   });
 });
 

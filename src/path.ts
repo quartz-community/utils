@@ -220,12 +220,13 @@ export function slugTag(tag: string): string {
 export function transformInternalLink(link: string): RelativeURL {
   const [fplike, anchor] = splitAnchor(decodeURI(link));
 
-  const folderPath = isFolderPath(fplike);
   const segments = fplike.split("/").filter((x) => x.length > 0);
   const prefix = segments.filter(_isRelativeSegment).join("/");
   const fp = segments.filter((seg) => !_isRelativeSegment(seg) && seg !== "").join("/");
 
-  const simpleSlug = simplifySlug(slugifyFilePath(fp as FilePath));
+  const slugged = slugifyFilePath(fp as FilePath);
+  const simpleSlug = simplifySlug(slugged);
+  const folderPath = isFolderPath(fplike) || isFolderPath(slugged);
   const joined = joinSegments(stripSlashes(prefix), stripSlashes(simpleSlug));
   const trail = folderPath ? "/" : "";
   const res = (_addRelativeToStart(joined) + trail + anchor) as RelativeURL;
