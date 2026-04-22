@@ -158,11 +158,12 @@ function slugTag(tag) {
 }
 function transformInternalLink(link) {
   const [fplike, anchor] = splitAnchor(decodeURI(link));
-  const folderPath = isFolderPath(fplike);
   const segments = fplike.split("/").filter((x) => x.length > 0);
   const prefix = segments.filter(_isRelativeSegment).join("/");
   const fp = segments.filter((seg) => !_isRelativeSegment(seg) && seg !== "").join("/");
-  const simpleSlug = simplifySlug(slugifyFilePath(fp));
+  const slugged = slugifyFilePath(fp);
+  const simpleSlug = simplifySlug(slugged);
+  const folderPath = isFolderPath(fplike) || isFolderPath(slugged);
   const joined = joinSegments(stripSlashes(prefix), stripSlashes(simpleSlug));
   const trail = folderPath ? "/" : "";
   const res = _addRelativeToStart(joined) + trail + anchor;
