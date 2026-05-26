@@ -206,7 +206,11 @@ export function splitAnchor(link: string): [string, string] {
   if (fp!.endsWith(".pdf")) {
     return [fp!, anchor === undefined ? "" : `#${anchor}`];
   }
-  const slugged = anchor === undefined ? "" : "#" + slugAnchor(anchor);
+  if (anchor === undefined) {
+    return [fp!, ""];
+  }
+  const bare = anchor.startsWith("^") ? anchor.slice(1) : anchor;
+  const slugged = "#" + slugAnchor(bare);
   return [fp!, slugged];
 }
 
