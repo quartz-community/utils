@@ -147,7 +147,11 @@ function splitAnchor(link) {
   if (fp.endsWith(".pdf")) {
     return [fp, anchor === void 0 ? "" : `#${anchor}`];
   }
-  const slugged = anchor === void 0 ? "" : "#" + slug(anchor);
+  if (anchor === void 0) {
+    return [fp, ""];
+  }
+  const bare = anchor.startsWith("^") ? anchor.slice(1) : anchor;
+  const slugged = "#" + slug(bare);
   return [fp, slugged];
 }
 function slugTag(tag) {
