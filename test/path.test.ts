@@ -11,6 +11,7 @@ import {
   getAllSegmentPrefixes,
   slugifyFilePath,
   slugifyPath,
+  splitAnchor,
   transformInternalLink,
   transformLink,
   normalizeHastElement,
@@ -288,6 +289,38 @@ describe("slugifyPath", () => {
   });
 });
 
+describe("splitAnchor", () => {
+  it("slugifies heading anchors", () => {
+    const [fp, anchor] = splitAnchor("page#My Heading");
+    expect(fp).toBe("page");
+    expect(anchor).toBe("#my-heading");
+  });
+
+  it("strips ^ and lowercases block references", () => {
+    const [fp, anchor] = splitAnchor("page#^MyBlock123");
+    expect(fp).toBe("page");
+    expect(anchor).toBe("#myblock123");
+  });
+
+  it("strips ^ and lowercases complex block reference IDs", () => {
+    const [fp, anchor] = splitAnchor("page#^CB-A34B78B4ICqt6zX6xBDAh6CT-47-927-1034");
+    expect(fp).toBe("page");
+    expect(anchor).toBe("#cb-a34b78b4icqt6zx6xbdah6ct-47-927-1034");
+  });
+
+  it("returns empty anchor when no # present", () => {
+    const [fp, anchor] = splitAnchor("page");
+    expect(fp).toBe("page");
+    expect(anchor).toBe("");
+  });
+
+  it("passes PDF anchors through unchanged", () => {
+    const [fp, anchor] = splitAnchor("doc.pdf#page=5");
+    expect(fp).toBe("doc.pdf");
+    expect(anchor).toBe("#page=5");
+  });
+});
+
 describe("transformInternalLink", () => {
   it("returns folder path for folder note convention (same-name parent)", () => {
     expect(transformInternalLink("characters/characters")).toBe("./characters/");
@@ -319,6 +352,10 @@ describe("transformInternalLink", () => {
 
   it("handles anchor on folder note link", () => {
     expect(transformInternalLink("My Folder/My Folder#heading")).toBe("./my-folder/#heading");
+  });
+
+  it("lowercases block reference anchor", () => {
+    expect(transformInternalLink("Note#^MyBlock123")).toBe("./note#myblock123");
   });
 
   it("handles percent-encoded spaces", () => {
