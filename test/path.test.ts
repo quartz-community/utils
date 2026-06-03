@@ -287,6 +287,24 @@ describe("slugifyPath", () => {
   it("lowercases for case-insensitive matching (Obsidian parity)", () => {
     expect(slugifyPath("Compendium/Species/Dryad/Apple")).toBe("compendium/species/dryad/apple");
   });
+
+  it('removes filesystem-illegal characters (< > : " | *)', () => {
+    expect(slugifyPath("Alias with <illegal> chars")).toBe("alias-with-illegal-chars");
+  });
+
+  it("removes colons and pipes", () => {
+    expect(slugifyPath("Title: Subtitle | Part")).toBe("title-subtitle--part");
+  });
+
+  it("removes asterisks and quotes", () => {
+    expect(slugifyPath('What is "AI"*')).toBe("what-is-ai");
+  });
+
+  it("handles mixed illegal characters across path segments", () => {
+    expect(slugifyPath("Guides/X-Men: First Class/Notes <draft>")).toBe(
+      "guides/x-men-first-class/notes-draft",
+    );
+  });
 });
 
 describe("splitAnchor", () => {

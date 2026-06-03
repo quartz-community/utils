@@ -303,6 +303,7 @@ export function slugifyPath(s: string): string {
         .replace(/%/g, "-percent")
         .replace(/\?/g, "")
         .replace(/#/g, "")
+        .replace(/[<>:"|*]/g, "")
         .toLowerCase(),
     )
     .join("/")
