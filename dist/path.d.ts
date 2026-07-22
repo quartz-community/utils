@@ -1,18 +1,18 @@
-import { Element } from "hast";
-import { FullSlug, FilePath } from "@quartz-community/types";
-export { FilePath, FullSlug } from "@quartz-community/types";
+import { Element } from 'hast';
+import { FullSlug, FilePath } from '@quartz-community/types';
+export { FilePath, FullSlug } from '@quartz-community/types';
 
 /** No '/index' ending, no file extension, can have trailing slash for folders. */
 type SimpleSlug = string & {
-  _brand: "SimpleSlug";
+    _brand: "SimpleSlug";
 };
 /** Starts with './' or '../', used for navigation. */
 type RelativeURL = string & {
-  _brand: "RelativeURL";
+    _brand: "RelativeURL";
 };
 interface TransformOptions {
-  strategy: "absolute" | "relative" | "shortest";
-  allSlugs: FullSlug[];
+    strategy: "absolute" | "relative" | "shortest";
+    allSlugs: FullSlug[];
 }
 declare function isFilePath(s: string): s is FilePath;
 declare function isFullSlug(s: string): s is FullSlug;
@@ -64,41 +64,6 @@ declare function slugifyPath(s: string): string;
  * The element (and its children) are deep-cloned via `structuredClone`, so
  * the original HAST tree is never mutated.
  */
-declare function normalizeHastElement<T extends Element>(
-  rawEl: T,
-  curBase: FullSlug,
-  newBase: FullSlug,
-): T;
+declare function normalizeHastElement<T extends Element>(rawEl: T, curBase: FullSlug, newBase: FullSlug): T;
 
-export {
-  type RelativeURL,
-  type SimpleSlug,
-  type TransformOptions,
-  endsWith,
-  getAllSegmentPrefixes,
-  getBasePath,
-  getFileExtension,
-  getFullSlug,
-  getFullSlugFromUrl,
-  isAbsoluteURL,
-  isFilePath,
-  isFolderPath,
-  isFullSlug,
-  isRelativeURL,
-  isSimpleSlug,
-  joinSegments,
-  normalizeHastElement,
-  pathToRoot,
-  resolveBasePath,
-  resolvePath,
-  resolveRelative,
-  simplifySlug,
-  slugTag,
-  slugifyFilePath,
-  slugifyPath,
-  splitAnchor,
-  stripSlashes,
-  transformInternalLink,
-  transformLink,
-  trimSuffix,
-};
+export { type RelativeURL, type SimpleSlug, type TransformOptions, endsWith, getAllSegmentPrefixes, getBasePath, getFileExtension, getFullSlug, getFullSlugFromUrl, isAbsoluteURL, isFilePath, isFolderPath, isFullSlug, isRelativeURL, isSimpleSlug, joinSegments, normalizeHastElement, pathToRoot, resolveBasePath, resolvePath, resolveRelative, simplifySlug, slugTag, slugifyFilePath, slugifyPath, splitAnchor, stripSlashes, transformInternalLink, transformLink, trimSuffix };
