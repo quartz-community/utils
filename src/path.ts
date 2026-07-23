@@ -58,7 +58,7 @@ export function getFullSlug(window: Window): FullSlug {
 }
 
 export function getFullSlugFromUrl(): FullSlug {
-  let rawSlug = window.location.pathname;
+  let rawSlug = decodeURI(window.location.pathname);
   if (rawSlug.endsWith("/")) rawSlug = rawSlug.slice(0, -1);
   if (rawSlug.startsWith("/")) rawSlug = rawSlug.slice(1);
   return rawSlug as FullSlug;
