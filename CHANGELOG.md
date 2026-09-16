@@ -1,3 +1,14 @@
+## 1.0.1
+
+### Patch Changes
+
+- Add `preact` to devDependencies so the package can be built from source.
+
+  `src/jsx.tsx` imports `preact` and `preact/jsx-runtime`, and the build emits declarations
+  (`dts: true`), so TypeScript needs preact types at build time. It was declared only as a
+  required peer dependency, and Quartz sets `legacy-peer-deps=true`, so npm did not install
+  it when building from a `github:` source. Builds failed with TS2307 and TS2875.
+
 # Changelog
 
 ## 1.0.0
