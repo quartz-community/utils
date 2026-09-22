@@ -258,7 +258,7 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
     if (opts.strategy === "shortest") {
       const isMultiSegment = targetCanonical.includes("/");
       const isFolderTarget = isFolderPath(targetSlug);
-      const matchingFileNames = opts.allSlugs.filter((slug) => {
+      let matchingFileNames = opts.allSlugs.filter((slug) => {
         if (isMultiSegment) {
           // Multi-segment partial path: match by suffix
           if (slug === targetCanonical || slug.endsWith("/" + targetCanonical)) {
@@ -275,6 +275,15 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
         const fileName = parts.at(-1);
         return targetCanonical === fileName;
       });
+
+      // Folder note Foo/Foo.md slugs to Foo/index, so its last segment never matches [[Foo]]
+      // Retry by folder name, only when no real file claims it
+      if (matchingFileNames.length === 0 && !isMultiSegment) {
+        matchingFileNames = opts.allSlugs.filter((slug) => {
+          const parts = slug.split("/");
+          return parts.at(-1) === "index" && parts.at(-2) === targetCanonical;
+        });
+      }
 
       if (matchingFileNames.length === 1) {
         const matchedSlug = matchingFileNames[0]!;
