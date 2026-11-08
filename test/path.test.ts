@@ -15,6 +15,7 @@ import {
   slugHeading,
   HeadingSlugger,
   obsidianHeadingAnchor,
+  resolveAnchorHref,
   transformInternalLink,
   transformLink,
   normalizeHastElement,
@@ -397,6 +398,35 @@ describe("obsidianHeadingAnchor", () => {
     expect(slugHeading(obsidianHeadingAnchor("Colon:unspaced"))).toBe(
       splitAnchor("b#Colon unspaced")[1].slice(1),
     );
+  });
+});
+
+describe("resolveAnchorHref", () => {
+  const ids = new Set(["监听-127001推荐", "colonunspaced", "colon-unspaced", "block1", "Mixed Id"]);
+
+  // quartz-community/crawl-links#4
+  it("slugs an anchor written as the heading's text", () => {
+    expect(resolveAnchorHref("#监听 127.0.0.1（推荐）", ids)).toBe("#监听-127001推荐");
+    expect(
+      resolveAnchorHref("#%E7%9B%91%E5%90%AC%20127.0.0.1%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89", ids),
+    ).toBe("#监听-127001推荐");
+    expect(resolveAnchorHref("#Colon unspaced", ids)).toBe("#colon-unspaced");
+  });
+
+  it("leaves an anchor that already names an id unchanged", () => {
+    expect(resolveAnchorHref("#colonunspaced", ids)).toBe("#colonunspaced");
+    expect(resolveAnchorHref("#Mixed%20Id", ids)).toBe("#Mixed%20Id");
+  });
+
+  it("points a block reference at the block's id", () => {
+    expect(resolveAnchorHref("#^block1", ids)).toBe("#block1");
+    expect(resolveAnchorHref("#^Block2", ids)).toBe("#block2");
+  });
+
+  it("leaves empty, unsluggable and malformed anchors alone", () => {
+    expect(resolveAnchorHref("#", ids)).toBe("#");
+    expect(resolveAnchorHref("#!!!", ids)).toBe("#!!!");
+    expect(resolveAnchorHref("#%E0%A4%A", ids)).toBe("#e0a4a");
   });
 });
 

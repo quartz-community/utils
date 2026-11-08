@@ -250,6 +250,33 @@ export function obsidianHeadingAnchor(text: string): string {
     .trim();
 }
 
+/**
+ * Point a same-page anchor link (`href` starting with `#`, as written) at an
+ * `id` on the page. `ids` holds every `id` on the page.
+ *
+ * - An anchor that already names an id (as written or percent-decoded) is
+ *   returned unchanged.
+ * - `#^name` (an Obsidian block reference) points at the id `name`.
+ * - Otherwise the anchor is a heading's text, slugged with
+ *   {@link slugHeading}, the same as the heading's id, e.g.
+ *   `#监听 127.0.0.1（推荐）` → `#监听-127001推荐`.
+ */
+export function resolveAnchorHref(href: string, ids: ReadonlySet<string>): string {
+  if (!href.startsWith("#") || href.length === 1) return href;
+  const raw = href.slice(1);
+  let decoded = raw;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    // keep the anchor as written
+  }
+  if (ids.has(raw) || ids.has(decoded)) return href;
+  if (decoded.startsWith("^") && ids.has(decoded.slice(1))) return "#" + decoded.slice(1);
+  const bare = decoded.startsWith("^") ? decoded.slice(1) : decoded;
+  const slugged = slugHeading(bare);
+  return slugged === "" ? href : "#" + slugged;
+}
+
 export function splitAnchor(link: string): [string, string] {
   const [fp, anchor] = link.split("#", 2);
   if (fp!.endsWith(".pdf")) {

@@ -24,6 +24,7 @@ export {
   slugHeading,
   HeadingSlugger,
   obsidianHeadingAnchor,
+  resolveAnchorHref,
   slugifyPath,
   slugTag,
   transformInternalLink,
