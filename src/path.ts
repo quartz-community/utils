@@ -257,9 +257,11 @@ export function obsidianHeadingAnchor(text: string): string {
  * - An anchor that already names an id (as written or percent-decoded) is
  *   returned unchanged.
  * - `#^name` (an Obsidian block reference) points at the id `name`.
- * - Otherwise the anchor is a heading's text, slugged with
- *   {@link slugHeading}, the same as the heading's id, e.g.
+ * - Otherwise, when the anchor is a heading's text, it points at the
+ *   heading's id: the anchor slugged with {@link slugHeading}, e.g.
  *   `#监听 127.0.0.1（推荐）` → `#监听-127001推荐`.
+ * - An anchor that names no id either way is returned unchanged, so a link to
+ *   an id added later (raw HTML, another plugin) keeps working.
  */
 export function resolveAnchorHref(href: string, ids: ReadonlySet<string>): string {
   if (!href.startsWith("#") || href.length === 1) return href;
@@ -271,10 +273,10 @@ export function resolveAnchorHref(href: string, ids: ReadonlySet<string>): strin
     // keep the anchor as written
   }
   if (ids.has(raw) || ids.has(decoded)) return href;
-  if (decoded.startsWith("^") && ids.has(decoded.slice(1))) return "#" + decoded.slice(1);
   const bare = decoded.startsWith("^") ? decoded.slice(1) : decoded;
+  if (ids.has(bare)) return "#" + bare;
   const slugged = slugHeading(bare);
-  return slugged === "" ? href : "#" + slugged;
+  return ids.has(slugged) ? "#" + slugged : href;
 }
 
 export function splitAnchor(link: string): [string, string] {

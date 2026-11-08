@@ -420,13 +420,15 @@ describe("resolveAnchorHref", () => {
 
   it("points a block reference at the block's id", () => {
     expect(resolveAnchorHref("#^block1", ids)).toBe("#block1");
-    expect(resolveAnchorHref("#^Block2", ids)).toBe("#block2");
+    expect(resolveAnchorHref("#^BLOCK1", ids)).toBe("#block1");
   });
 
-  it("leaves empty, unsluggable and malformed anchors alone", () => {
+  it("leaves anchors that name no id unchanged", () => {
     expect(resolveAnchorHref("#", ids)).toBe("#");
     expect(resolveAnchorHref("#!!!", ids)).toBe("#!!!");
-    expect(resolveAnchorHref("#%E0%A4%A", ids)).toBe("#e0a4a");
+    expect(resolveAnchorHref("#%E0%A4%A", ids)).toBe("#%E0%A4%A");
+    expect(resolveAnchorHref("#Added Later", ids)).toBe("#Added Later");
+    expect(resolveAnchorHref("#^Block2", ids)).toBe("#^Block2");
   });
 });
 
