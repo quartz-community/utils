@@ -442,6 +442,22 @@ describe("transformLink", () => {
       expect(transformLink(cur, "index", opts)).toBe("../../");
     });
 
+    it("resolves a folder note by its folder name", () => {
+      // slugifyFilePath gives a/b/b.md the slug a/b/index, per Obsidian folder-note convention
+      const cur = "a/b/c" as FullSlug;
+      expect(transformLink(cur, "b", opts)).toBe("../../a/b/");
+    });
+
+    it("prefers a real file over a folder note of the same name", () => {
+      const withCollision = [...allSlugs, "archive/b"] as FullSlug[];
+      const collisionOpts: TransformOptions = {
+        strategy: "shortest",
+        allSlugs: withCollision,
+      };
+      const cur = "a/b/c" as FullSlug;
+      expect(transformLink(cur, "b", collisionOpts)).toBe("../../archive/b");
+    });
+
     it("resolves from a/b/index (explicit index slug)", () => {
       const cur = "a/b/index" as FullSlug;
       expect(transformLink(cur, "d", opts)).toBe("../../a/b/d");
