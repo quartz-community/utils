@@ -12,6 +12,9 @@ import {
   slugifyFilePath,
   slugifyPath,
   splitAnchor,
+  slugHeading,
+  HeadingSlugger,
+  obsidianHeadingAnchor,
   transformInternalLink,
   transformLink,
   normalizeHastElement,
@@ -339,6 +342,64 @@ describe("splitAnchor", () => {
   });
 });
 
+describe("slugHeading", () => {
+  it("matches github-slugger / rehype-slug ids", () => {
+    expect(slugHeading("My Heading")).toBe("my-heading");
+    expect(slugHeading("Colon:unspaced")).toBe("colonunspaced");
+    expect(slugHeading("Range 1--2")).toBe("range-1--2");
+    expect(slugHeading("The crosswalk's identifier contract")).toBe(
+      "the-crosswalks-identifier-contract",
+    );
+  });
+
+  // quartz-community/crawl-links#4
+  it("keeps non-Latin letters and digits", () => {
+    expect(slugHeading("监听 127.0.0.1（推荐）")).toBe("监听-127001推荐");
+  });
+
+  it("is idempotent on its own output", () => {
+    for (const text of ["My Heading", "监听 127.0.0.1（推荐）", "Range 1--2", "a_b-c"]) {
+      expect(slugHeading(slugHeading(text))).toBe(slugHeading(text));
+    }
+  });
+
+  it("gives the anchor splitAnchor gives", () => {
+    expect(splitAnchor("page#监听 127.0.0.1（推荐）")[1]).toBe(
+      "#" + slugHeading("监听 127.0.0.1（推荐）"),
+    );
+  });
+});
+
+describe("HeadingSlugger", () => {
+  it("numbers repeated headings like rehype-slug", () => {
+    const slugger = new HeadingSlugger();
+    expect(["Foo", "Foo", "Foo 1", "Foo"].map((t) => slugger.slug(t))).toEqual([
+      "foo",
+      "foo-1",
+      "foo-1-1",
+      "foo-2",
+    ]);
+    slugger.reset();
+    expect(slugger.slug("Foo")).toBe("foo");
+  });
+});
+
+describe("obsidianHeadingAnchor", () => {
+  // quartz-community/crawl-links#10
+  it("replaces the characters Obsidian drops from heading anchors with spaces", () => {
+    expect(obsidianHeadingAnchor("Colon:unspaced")).toBe("Colon unspaced");
+    expect(obsidianHeadingAnchor("A | B")).toBe("A B");
+    expect(obsidianHeadingAnchor("x^y#z\\w")).toBe("x y z w");
+    expect(obsidianHeadingAnchor("  Plain heading ")).toBe("Plain heading");
+  });
+
+  it("slugs to the anchor a link written by Obsidian resolves to", () => {
+    expect(slugHeading(obsidianHeadingAnchor("Colon:unspaced"))).toBe(
+      splitAnchor("b#Colon unspaced")[1].slice(1),
+    );
+  });
+});
+
 describe("transformInternalLink", () => {
   it("returns folder path for folder note convention (same-name parent)", () => {
     expect(transformInternalLink("characters/characters")).toBe("./characters/");
@@ -399,6 +460,46 @@ describe("transformLink", () => {
     "index",
     "a/test.png",
   ] as FullSlug[];
+
+  // quartz-community/utils#6
+  describe("relative", () => {
+    const opts: TransformOptions = { strategy: "relative", allSlugs };
+
+    it("resolves a folder note named by its own file name from inside it", () => {
+      expect(transformLink("notes/topic/index" as FullSlug, "./Topic.md#Topic Section", opts)).toBe(
+        "./#topic-section",
+      );
+    });
+
+    it("resolves a folder note from a sibling note in its folder", () => {
+      expect(transformLink("notes/topic/other" as FullSlug, "Topic.md", opts)).toBe("./");
+      expect(transformLink("notes/topic/other" as FullSlug, "./Topic.md", opts)).toBe("./");
+    });
+
+    it("resolves a folder note through ../", () => {
+      expect(transformLink("notes/a/source" as FullSlug, "../topic/Topic.md", opts)).toBe(
+        "../topic/",
+      );
+      expect(transformLink("notes/a/source" as FullSlug, "../../notes/topic/Topic.md", opts)).toBe(
+        "../../notes/topic/",
+      );
+    });
+
+    it("resolves a folder note with spaces and percent-encoding", () => {
+      expect(transformLink("notes/my-topic/index" as FullSlug, "./My%20Topic.md#A%20B", opts)).toBe(
+        "./#a-b",
+      );
+    });
+
+    it("leaves other relative links unchanged", () => {
+      expect(transformLink("notes/topic/index" as FullSlug, "./Other.md", opts)).toBe("./other");
+      expect(transformLink("notes/a/source" as FullSlug, "../b/c.md", opts)).toBe("../b/c");
+      expect(transformLink("notes/topic/index" as FullSlug, "./topic.png", opts)).toBe(
+        "./topic.png",
+      );
+      expect(transformLink("index" as FullSlug, "Topic.md", opts)).toBe("./topic");
+    });
+  });
 
   describe("absolute", () => {
     const opts: TransformOptions = { strategy: "absolute", allSlugs };
