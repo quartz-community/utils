@@ -17,6 +17,7 @@ import {
   obsidianHeadingAnchor,
   resolveAnchorHref,
   transformInternalLink,
+  linkPathDecodes,
   transformLink,
   normalizeHastElement,
 } from "../src/path.js";
@@ -433,6 +434,21 @@ describe("resolveAnchorHref", () => {
 });
 
 describe("transformInternalLink", () => {
+  // Obsidian 1.15.0: link paths are NFC, and a path that is not valid percent-encoding is an
+  // external link (the caller's call, via linkPathDecodes), never a thrown URIError
+  it("resolves a decomposed (NFD) path to the composed slug", () => {
+    expect(transformInternalLink("cafe\u0301.md")).toBe("./caf\u00e9");
+    expect(slugifyFilePath("cafe\u0301.md" as FilePath)).toBe("caf\u00e9");
+  });
+
+  it("does not throw on a path that is not valid percent-encoding", () => {
+    expect(() => transformInternalLink("a%E2.md")).not.toThrow();
+    expect(linkPathDecodes("%zz")).toBe(false);
+    expect(linkPathDecodes("a%E2.md")).toBe(false);
+    expect(linkPathDecodes("caf%C3%A9.md#%zz")).toBe(true);
+    expect(linkPathDecodes("../x:y")).toBe(true);
+  });
+
   it("returns folder path for folder note convention (same-name parent)", () => {
     expect(transformInternalLink("characters/characters")).toBe("./characters/");
   });

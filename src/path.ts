@@ -299,8 +299,31 @@ export function slugTag(tag: string): string {
     .join("/");
 }
 
+/** `decodeURI`, or the input unchanged when it is not valid percent-encoding (`%zz`, `a%E2.md`). */
+function _safeDecodeURI(s: string): string {
+  try {
+    return decodeURI(s);
+  } catch {
+    return s;
+  }
+}
+
+/**
+ * Whether a link's path (before any `#`) percent-decodes. Obsidian treats a Markdown link whose
+ * path does not (`[x](%zz)`, `[x](a%E2.md)`) as external.
+ */
+export function linkPathDecodes(link: string): boolean {
+  const hash = link.indexOf("#");
+  try {
+    decodeURI(hash === -1 ? link : link.slice(0, hash));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function transformInternalLink(link: string): RelativeURL {
-  const [fplike, anchor] = splitAnchor(decodeURI(link));
+  const [fplike, anchor] = splitAnchor(_safeDecodeURI(link));
 
   const segments = fplike.split("/").filter((x) => x.length > 0);
   const prefix = segments.filter(_isRelativeSegment).join("/");
@@ -428,7 +451,10 @@ function _resolveRelativeFolderNote(src: FullSlug, target: string): RelativeURL 
  * separators are preserved.
  */
 export function slugifyPath(s: string): string {
+  // NFC, as Obsidian resolves paths: `cafe\u0301.md` (NFD, as macOS spells it) and `café.md` are
+  // the same note, so a file and a link spelled either way get the same slug
   return s
+    .normalize("NFC")
     .split("/")
     .map((segment) =>
       segment
