@@ -28,6 +28,7 @@ export {
   slugifyPath,
   slugTag,
   transformInternalLink,
+  linkPathDecodes,
   transformLink,
   normalizeHastElement,
 } from "./path.js";
