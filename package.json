@@ -66,8 +66,7 @@
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "dependencies": {
-    "@quartz-community/types": "^1.0.0",
-    "github-slugger": "^2.0.0"
+    "@quartz-community/types": "^1.0.0"
   },
   "scripts": {
     "build": "tsup",
@@ -92,6 +91,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "github-slugger": "^2.0.0",
     "hast": "^0.0.2",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "preact": "^10.0.0",
