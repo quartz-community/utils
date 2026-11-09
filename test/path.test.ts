@@ -12,6 +12,10 @@ import {
   slugifyFilePath,
   slugifyPath,
   splitAnchor,
+  slugHeading,
+  HeadingSlugger,
+  obsidianHeadingAnchor,
+  resolveAnchorHref,
   transformInternalLink,
   transformLink,
   normalizeHastElement,
@@ -339,6 +343,95 @@ describe("splitAnchor", () => {
   });
 });
 
+describe("slugHeading", () => {
+  it("matches github-slugger / rehype-slug ids", () => {
+    expect(slugHeading("My Heading")).toBe("my-heading");
+    expect(slugHeading("Colon:unspaced")).toBe("colonunspaced");
+    expect(slugHeading("Range 1--2")).toBe("range-1--2");
+    expect(slugHeading("The crosswalk's identifier contract")).toBe(
+      "the-crosswalks-identifier-contract",
+    );
+  });
+
+  // quartz-community/crawl-links#4
+  it("keeps non-Latin letters and digits", () => {
+    expect(slugHeading("监听 127.0.0.1（推荐）")).toBe("监听-127001推荐");
+  });
+
+  it("is idempotent on its own output", () => {
+    for (const text of ["My Heading", "监听 127.0.0.1（推荐）", "Range 1--2", "a_b-c"]) {
+      expect(slugHeading(slugHeading(text))).toBe(slugHeading(text));
+    }
+  });
+
+  it("gives the anchor splitAnchor gives", () => {
+    expect(splitAnchor("page#监听 127.0.0.1（推荐）")[1]).toBe(
+      "#" + slugHeading("监听 127.0.0.1（推荐）"),
+    );
+  });
+});
+
+describe("HeadingSlugger", () => {
+  it("numbers repeated headings like rehype-slug", () => {
+    const slugger = new HeadingSlugger();
+    expect(["Foo", "Foo", "Foo 1", "Foo"].map((t) => slugger.slug(t))).toEqual([
+      "foo",
+      "foo-1",
+      "foo-1-1",
+      "foo-2",
+    ]);
+    slugger.reset();
+    expect(slugger.slug("Foo")).toBe("foo");
+  });
+});
+
+describe("obsidianHeadingAnchor", () => {
+  // quartz-community/crawl-links#10
+  it("replaces the characters Obsidian drops from heading anchors with spaces", () => {
+    expect(obsidianHeadingAnchor("Colon:unspaced")).toBe("Colon unspaced");
+    expect(obsidianHeadingAnchor("A | B")).toBe("A B");
+    expect(obsidianHeadingAnchor("x^y#z\\w")).toBe("x y z w");
+    expect(obsidianHeadingAnchor("  Plain heading ")).toBe("Plain heading");
+  });
+
+  it("slugs to the anchor a link written by Obsidian resolves to", () => {
+    expect(slugHeading(obsidianHeadingAnchor("Colon:unspaced"))).toBe(
+      splitAnchor("b#Colon unspaced")[1].slice(1),
+    );
+  });
+});
+
+describe("resolveAnchorHref", () => {
+  const ids = new Set(["监听-127001推荐", "colonunspaced", "colon-unspaced", "block1", "Mixed Id"]);
+
+  // quartz-community/crawl-links#4
+  it("slugs an anchor written as the heading's text", () => {
+    expect(resolveAnchorHref("#监听 127.0.0.1（推荐）", ids)).toBe("#监听-127001推荐");
+    expect(
+      resolveAnchorHref("#%E7%9B%91%E5%90%AC%20127.0.0.1%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89", ids),
+    ).toBe("#监听-127001推荐");
+    expect(resolveAnchorHref("#Colon unspaced", ids)).toBe("#colon-unspaced");
+  });
+
+  it("leaves an anchor that already names an id unchanged", () => {
+    expect(resolveAnchorHref("#colonunspaced", ids)).toBe("#colonunspaced");
+    expect(resolveAnchorHref("#Mixed%20Id", ids)).toBe("#Mixed%20Id");
+  });
+
+  it("points a block reference at the block's id", () => {
+    expect(resolveAnchorHref("#^block1", ids)).toBe("#block1");
+    expect(resolveAnchorHref("#^BLOCK1", ids)).toBe("#block1");
+  });
+
+  it("leaves anchors that name no id unchanged", () => {
+    expect(resolveAnchorHref("#", ids)).toBe("#");
+    expect(resolveAnchorHref("#!!!", ids)).toBe("#!!!");
+    expect(resolveAnchorHref("#%E0%A4%A", ids)).toBe("#%E0%A4%A");
+    expect(resolveAnchorHref("#Added Later", ids)).toBe("#Added Later");
+    expect(resolveAnchorHref("#^Block2", ids)).toBe("#^Block2");
+  });
+});
+
 describe("transformInternalLink", () => {
   it("returns folder path for folder note convention (same-name parent)", () => {
     expect(transformInternalLink("characters/characters")).toBe("./characters/");
@@ -400,6 +493,46 @@ describe("transformLink", () => {
     "a/test.png",
   ] as FullSlug[];
 
+  // quartz-community/utils#6
+  describe("relative", () => {
+    const opts: TransformOptions = { strategy: "relative", allSlugs };
+
+    it("resolves a folder note named by its own file name from inside it", () => {
+      expect(transformLink("notes/topic/index" as FullSlug, "./Topic.md#Topic Section", opts)).toBe(
+        "./#topic-section",
+      );
+    });
+
+    it("resolves a folder note from a sibling note in its folder", () => {
+      expect(transformLink("notes/topic/other" as FullSlug, "Topic.md", opts)).toBe("./");
+      expect(transformLink("notes/topic/other" as FullSlug, "./Topic.md", opts)).toBe("./");
+    });
+
+    it("resolves a folder note through ../", () => {
+      expect(transformLink("notes/a/source" as FullSlug, "../topic/Topic.md", opts)).toBe(
+        "../topic/",
+      );
+      expect(transformLink("notes/a/source" as FullSlug, "../../notes/topic/Topic.md", opts)).toBe(
+        "../../notes/topic/",
+      );
+    });
+
+    it("resolves a folder note with spaces and percent-encoding", () => {
+      expect(transformLink("notes/my-topic/index" as FullSlug, "./My%20Topic.md#A%20B", opts)).toBe(
+        "./#a-b",
+      );
+    });
+
+    it("leaves other relative links unchanged", () => {
+      expect(transformLink("notes/topic/index" as FullSlug, "./Other.md", opts)).toBe("./other");
+      expect(transformLink("notes/a/source" as FullSlug, "../b/c.md", opts)).toBe("../b/c");
+      expect(transformLink("notes/topic/index" as FullSlug, "./topic.png", opts)).toBe(
+        "./topic.png",
+      );
+      expect(transformLink("index" as FullSlug, "Topic.md", opts)).toBe("./topic");
+    });
+  });
+
   describe("absolute", () => {
     const opts: TransformOptions = { strategy: "absolute", allSlugs };
 
@@ -440,6 +573,22 @@ describe("transformLink", () => {
       expect(transformLink(cur, "d", opts)).toBe("../../a/b/d");
       expect(transformLink(cur, "h", opts)).toBe("../../e/g/h");
       expect(transformLink(cur, "index", opts)).toBe("../../");
+    });
+
+    it("resolves a folder note by its folder name", () => {
+      // slugifyFilePath gives a/b/b.md the slug a/b/index, per Obsidian folder-note convention
+      const cur = "a/b/c" as FullSlug;
+      expect(transformLink(cur, "b", opts)).toBe("../../a/b/");
+    });
+
+    it("prefers a real file over a folder note of the same name", () => {
+      const withCollision = [...allSlugs, "archive/b"] as FullSlug[];
+      const collisionOpts: TransformOptions = {
+        strategy: "shortest",
+        allSlugs: withCollision,
+      };
+      const cur = "a/b/c" as FullSlug;
+      expect(transformLink(cur, "b", collisionOpts)).toBe("../../archive/b");
     });
 
     it("resolves from a/b/index (explicit index slug)", () => {

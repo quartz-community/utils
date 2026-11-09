@@ -81,7 +81,6 @@
     "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts --no-audit --no-fund"
   },
   "peerDependencies": {
-    "github-slugger": "^2.0.0",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "preact": "^10.0.0"
   },
@@ -107,9 +106,6 @@
   },
   "peerDependenciesMeta": {
     "hast-util-to-jsx-runtime": {
-      "optional": true
-    },
-    "github-slugger": {
       "optional": true
     }
   },

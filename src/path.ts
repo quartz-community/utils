@@ -1,4 +1,4 @@
-import { slug as slugAnchor } from "github-slugger";
+import GithubSlugger, { slug as githubSlug } from "github-slugger";
 import type { Element as HastElement } from "hast";
 import type { FilePath, FullSlug } from "@quartz-community/types";
 
@@ -201,6 +201,84 @@ export function resolveRelative(current: FullSlug, target: FullSlug | SimpleSlug
   return res;
 }
 
+/**
+ * The slug of a heading's text: the `id` Quartz gives a heading, and the
+ * anchor every link or table-of-contents entry to that heading must use.
+ *
+ * Same rule as GitHub and `rehype-slug` (`github-slugger`): lowercase,
+ * punctuation removed, each space replaced by `-`. Non-Latin letters and
+ * digits are kept, e.g. `"监听 127.0.0.1（推荐）"` → `"监听-127001推荐"`.
+ *
+ * Use {@link HeadingSlugger} when slugging every heading on a page, so that
+ * repeated headings get unique ids (`foo`, `foo-1`, …).
+ */
+export function slugHeading(text: string): string {
+  return githubSlug(text);
+}
+
+/**
+ * Slugs the headings of one page in document order with {@link slugHeading},
+ * numbering repeats the way GitHub and `rehype-slug` do (`foo`, `foo-1`,
+ * `foo-2`). Create one per page, or call `reset()` between pages.
+ */
+export class HeadingSlugger {
+  private readonly slugger = new GithubSlugger();
+
+  /** Slug `text`, unique among the slugs this instance has returned. */
+  slug(text: string): string {
+    return this.slugger.slug(text);
+  }
+
+  reset(): void {
+    this.slugger.reset();
+  }
+}
+
+/**
+ * The anchor Obsidian writes when it links to a heading with this text.
+ *
+ * Obsidian anchors cannot hold `:`, `|`, `^`, `#` or `\`, so Obsidian replaces
+ * each with a space and collapses the spaces: `"Colon:unspaced"` →
+ * `"Colon unspaced"`. Slugging this with {@link slugHeading} gives the anchor
+ * a link written in Obsidian resolves to; when it differs from the heading's
+ * `id`, heading producers can add it as an alias id.
+ */
+export function obsidianHeadingAnchor(text: string): string {
+  return text
+    .replace(/[:|^#\\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Point a same-page anchor link (`href` starting with `#`, as written) at an
+ * `id` on the page. `ids` holds every `id` on the page.
+ *
+ * - An anchor that already names an id (as written or percent-decoded) is
+ *   returned unchanged.
+ * - `#^name` (an Obsidian block reference) points at the id `name`.
+ * - Otherwise, when the anchor is a heading's text, it points at the
+ *   heading's id: the anchor slugged with {@link slugHeading}, e.g.
+ *   `#监听 127.0.0.1（推荐）` → `#监听-127001推荐`.
+ * - An anchor that names no id either way is returned unchanged, so a link to
+ *   an id added later (raw HTML, another plugin) keeps working.
+ */
+export function resolveAnchorHref(href: string, ids: ReadonlySet<string>): string {
+  if (!href.startsWith("#") || href.length === 1) return href;
+  const raw = href.slice(1);
+  let decoded = raw;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    // keep the anchor as written
+  }
+  if (ids.has(raw) || ids.has(decoded)) return href;
+  const bare = decoded.startsWith("^") ? decoded.slice(1) : decoded;
+  if (ids.has(bare)) return "#" + bare;
+  const slugged = slugHeading(bare);
+  return ids.has(slugged) ? "#" + slugged : href;
+}
+
 export function splitAnchor(link: string): [string, string] {
   const [fp, anchor] = link.split("#", 2);
   if (fp!.endsWith(".pdf")) {
@@ -210,7 +288,7 @@ export function splitAnchor(link: string): [string, string] {
     return [fp!, ""];
   }
   const bare = anchor.startsWith("^") ? anchor.slice(1) : anchor;
-  const slugged = "#" + slugAnchor(bare);
+  const slugged = "#" + slugHeading(bare);
   return [fp!, slugged];
 }
 
@@ -241,7 +319,7 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
   const targetSlug = transformInternalLink(target);
 
   if (opts.strategy === "relative") {
-    return targetSlug as RelativeURL;
+    return _resolveRelativeFolderNote(src, target) ?? (targetSlug as RelativeURL);
   } else {
     // When src is a folder page (e.g. "Compendium/Spells" backed by index.md),
     // the browser serves it at "/Compendium/Spells/" with a trailing slash.
@@ -258,7 +336,7 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
     if (opts.strategy === "shortest") {
       const isMultiSegment = targetCanonical.includes("/");
       const isFolderTarget = isFolderPath(targetSlug);
-      const matchingFileNames = opts.allSlugs.filter((slug) => {
+      let matchingFileNames = opts.allSlugs.filter((slug) => {
         if (isMultiSegment) {
           // Multi-segment partial path: match by suffix
           if (slug === targetCanonical || slug.endsWith("/" + targetCanonical)) {
@@ -276,6 +354,15 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
         return targetCanonical === fileName;
       });
 
+      // Folder note Foo/Foo.md slugs to Foo/index, so its last segment never matches [[Foo]]
+      // Retry by folder name, only when no real file claims it
+      if (matchingFileNames.length === 0 && !isMultiSegment) {
+        matchingFileNames = opts.allSlugs.filter((slug) => {
+          const parts = slug.split("/");
+          return parts.at(-1) === "index" && parts.at(-2) === targetCanonical;
+        });
+      }
+
       if (matchingFileNames.length === 1) {
         const matchedSlug = matchingFileNames[0]!;
         return (resolveRelative(effectiveSrc, matchedSlug) + targetAnchor) as RelativeURL;
@@ -284,6 +371,53 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
 
     return (joinSegments(pathToRoot(effectiveSrc), canonicalSlug) + folderTail) as RelativeURL;
   }
+}
+
+/**
+ * A relative link can name a folder note (`topic/Topic.md`, slugged
+ * `topic/index`) without spelling out its folder, e.g. `./Topic.md` written
+ * inside `topic/`. `slugifyFilePath` only sees the segments the link spells
+ * out, so apply the folder-note rule to the target as resolved against the
+ * source's folder, and return the link with its file name replaced by
+ * `index`. Returns `undefined` when the target is not such a folder note.
+ * @internal
+ */
+function _resolveRelativeFolderNote(src: FullSlug, target: string): RelativeURL | undefined {
+  let decoded: string;
+  try {
+    decoded = decodeURI(target);
+  } catch {
+    return undefined;
+  }
+  const hashIdx = decoded.indexOf("#");
+  const fplike = hashIdx === -1 ? decoded : decoded.slice(0, hashIdx);
+  const rest = hashIdx === -1 ? "" : decoded.slice(hashIdx);
+  if (fplike === "" || fplike.endsWith("/") || fplike.startsWith("/")) return undefined;
+
+  const ext = getFileExtension(fplike);
+  if (![".md", ".html", undefined].includes(ext)) return undefined;
+
+  const segments = fplike.split("/");
+  const fileName = segments[segments.length - 1]!;
+  const fileSlug = slugifyPath(ext ? fileName.slice(0, -ext.length) : fileName);
+  if (fileSlug === "index") return undefined;
+
+  // Resolve the link's folder against the source's folder (both as slugs)
+  const resolved = src.split("/").slice(0, -1);
+  for (const seg of segments.slice(0, -1)) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") {
+      if (resolved.length === 0) return undefined;
+      resolved.pop();
+    } else {
+      resolved.push(slugifyPath(seg));
+    }
+  }
+
+  if (resolved.length === 0 || resolved[resolved.length - 1] !== fileSlug) return undefined;
+
+  segments[segments.length - 1] = "index" + (ext ?? "");
+  return transformInternalLink(encodeURI(segments.join("/") + rest));
 }
 
 /**
