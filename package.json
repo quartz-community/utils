@@ -1,6 +1,6 @@
 {
   "name": "@quartz-community/utils",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Shared utility functions for Quartz community plugins.",
   "type": "module",
   "license": "MIT",

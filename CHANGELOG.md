@@ -1,3 +1,21 @@
+## 1.1.0
+
+### Minor Changes
+
+- 4c5a4d0: Add `slugHeading`, `HeadingSlugger` and `obsidianHeadingAnchor`: one shared way to slug heading text, so heading ids, links to headings and table-of-contents entries always agree. `slugHeading` gives the same slug as GitHub and `rehype-slug`, so existing heading ids don't change. `splitAnchor` now slugs anchors with `slugHeading`, and the new `resolveAnchorHref` points a same-page `#anchor` link at the heading (or block) it names.
+
+  Under the `relative` link strategy, a link to a folder note by its own file name, such as `./Topic.md` written inside `topic/`, now reaches the folder page instead of a page that doesn't exist.
+
+### Patch Changes
+
+- 2c9c4ca: Resolve short wikilinks to Obsidian folder notes.
+
+  `slugifyFilePath` rewrites `Foo/Foo.md` to the slug `Foo/index`. The last path segment is then `index`, so the `shortest` strategy in `transformLink` never matched a short `[[Foo]]` link. The link resolved to a root-relative "guess" that does not exist, and no error occurred.
+
+  `transformLink` now retries against the folder name. The retry runs only when no real file claims that name. Links that already resolve do not change.
+
+- 68d4de9: `github-slugger` is bundled into `dist/` instead of being imported from an optional peer dependency, which npm doesn't install. The package uses it for `slugHeading` and `HeadingSlugger`, so a package that uses `@quartz-community/utils` no longer needs to declare `github-slugger` itself.
+
 ## 1.0.2
 
 ### Patch Changes
