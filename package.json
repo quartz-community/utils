@@ -81,7 +81,6 @@
     "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts --no-audit --no-fund"
   },
   "peerDependencies": {
-    "hast-util-to-jsx-runtime": "^2.3.6",
     "preact": "^10.0.0"
   },
   "devDependencies": {
@@ -103,11 +102,6 @@
   "engines": {
     "node": ">=22",
     "npm": ">=10.9.2"
-  },
-  "peerDependenciesMeta": {
-    "hast-util-to-jsx-runtime": {
-      "optional": true
-    }
   },
   "publishConfig": {
     "access": "public"
