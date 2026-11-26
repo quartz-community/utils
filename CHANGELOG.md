@@ -1,3 +1,9 @@
+## 1.2.1
+
+### Patch Changes
+
+- 5f675fe: `unescapeHTML` decodes each entity once, so `unescapeHTML(escapeHTML(s))` returns `s` again. Before, `&amp;lt;` was decoded twice to `<`.
+
 ## 1.2.0
 
 ### Minor Changes
