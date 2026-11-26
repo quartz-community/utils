@@ -469,15 +469,55 @@ export function getSlugOptions(): Readonly<SlugOptions> {
 }
 
 /**
- * Remove combining diacritical marks (U+0300–U+036F) after canonical decomposition, then
- * recompose: `Čeština` → `Cestina`. Scripts whose marks lie outside that block (Hangul, kana
- * with dakuten, Devanagari, Arabic) keep their usual form; letters without a decomposition
- * (`ø`, `ł`, `ß`, `æ`) are kept.
+ * Latin letters without a decomposition, written as Latin letters without diacritics (the
+ * usual ASCII spelling), so their slugs need no percent-encoding either.
+ */
+const LATIN_FOLDS: Record<string, string> = {
+  ł: "l",
+  Ł: "L",
+  ø: "o",
+  Ø: "O",
+  đ: "d",
+  Đ: "D",
+  ð: "d",
+  Ð: "D",
+  ħ: "h",
+  Ħ: "H",
+  ŧ: "t",
+  Ŧ: "T",
+  ŀ: "l",
+  Ŀ: "L",
+  ı: "i",
+  ƚ: "l",
+  ƀ: "b",
+  ɨ: "i",
+  ʉ: "u",
+  ß: "ss",
+  ẞ: "SS",
+  æ: "ae",
+  Æ: "AE",
+  œ: "oe",
+  Œ: "OE",
+  þ: "th",
+  Þ: "Th",
+};
+const LATIN_FOLD_RE = new RegExp(`[${Object.keys(LATIN_FOLDS).join("")}]`, "gu");
+// a Latin letter and the combining marks on it
+const LATIN_WITH_MARKS_RE = /(\p{Script=Latin})\p{M}+/gu;
+
+/**
+ * Strip diacritics from Latin letters (`Čeština` → `Cestina`, `Łódź` → `Lodz`, `Straße` →
+ * `Strasse`), so a slug in a Latin-script language needs no percent-encoding. Marks are removed
+ * only from Latin letters, after canonical decomposition: other scripts keep theirs, since their
+ * slugs are percent-encoded either way and their marks can be part of the letter (Russian `й`,
+ * `ё`; Greek `ά`; Hangul, kana with dakuten, Devanagari, Hebrew and Arabic). The result is
+ * recomposed (NFC).
  */
 export function stripDiacritics(s: string): string {
   return s
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(LATIN_WITH_MARKS_RE, "$1")
+    .replace(LATIN_FOLD_RE, (c) => LATIN_FOLDS[c] ?? c)
     .normalize("NFC");
 }
 
