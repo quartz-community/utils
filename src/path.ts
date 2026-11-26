@@ -443,18 +443,57 @@ function _resolveRelativeFolderNote(src: FullSlug, target: string): RelativeURL 
   return transformInternalLink(encodeURI(segments.join("/") + rest));
 }
 
+export interface SlugOptions {
+  /**
+   * Strip accents and other diacritics from slugs (`české/čeština` → `ceske/cestina`).
+   * Quartz sets this from `configuration.slugs.stripDiacritics`. Default `false`.
+   */
+  stripDiacritics?: boolean;
+}
+
+// Kept on globalThis under a registered symbol, so every copy of this package loaded in the same
+// thread (Quartz core and each plugin may resolve their own) sees the same setting.
+const SLUG_OPTIONS = Symbol.for("@quartz-community/utils/slugOptions");
+type SlugOptionsHost = { [SLUG_OPTIONS]?: SlugOptions };
+
+/**
+ * Set how paths and tags become slugs, for this thread (Quartz calls it when the config is
+ * loaded, in the main thread and in every worker). `undefined` restores the defaults.
+ */
+export function setSlugOptions(options: SlugOptions | undefined): void {
+  (globalThis as SlugOptionsHost)[SLUG_OPTIONS] = { ...(options ?? {}) };
+}
+
+export function getSlugOptions(): Readonly<SlugOptions> {
+  return (globalThis as SlugOptionsHost)[SLUG_OPTIONS] ?? {};
+}
+
+/**
+ * Remove combining diacritical marks (U+0300–U+036F) after canonical decomposition, then
+ * recompose: `Čeština` → `Cestina`. Scripts whose marks lie outside that block (Hangul, kana
+ * with dakuten, Devanagari, Arabic) keep their usual form; letters without a decomposition
+ * (`ø`, `ł`, `ß`, `æ`) are kept.
+ */
+export function stripDiacritics(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFC");
+}
+
 /**
  * Slugify a file path for use as an href.
  * Replaces whitespace→hyphens, &→-and-, %→-percent, removes ? and #, and
  * lowercases the result so that link matching is case-insensitive (matching
  * Obsidian's link-resolution semantics). Operates per segment so directory
- * separators are preserved.
+ * separators are preserved. With `setSlugOptions({ stripDiacritics: true })` diacritics are
+ * stripped as well (this also applies to `slugifyFilePath`, `slugTag` and link resolution).
  */
 export function slugifyPath(s: string): string {
   // NFC, as Obsidian resolves paths: `cafe\u0301.md` (NFD, as macOS spells it) and `café.md` are
   // the same note, so a file and a link spelled either way get the same slug
-  return s
-    .normalize("NFC")
+  const normalized = s.normalize("NFC");
+  return (getSlugOptions().stripDiacritics ? stripDiacritics(normalized) : normalized)
     .split("/")
     .map((segment) =>
       segment

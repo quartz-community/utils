@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import {
   simplifySlug,
   joinSegments,
@@ -20,6 +20,10 @@ import {
   linkPathDecodes,
   transformLink,
   normalizeHastElement,
+  setSlugOptions,
+  getSlugOptions,
+  stripDiacritics,
+  slugTag,
 } from "../src/path.js";
 import type { FilePath, FullSlug, TransformOptions } from "../src/path.js";
 import type { Element as HastElement } from "hast";
@@ -859,5 +863,50 @@ describe("normalizeHastElement", () => {
     const originalHref = el.properties!.href;
     normalizeHastElement(el, "canvas.canvas" as FullSlug, "plugins/canvaspage" as FullSlug);
     expect(el.properties!.href).toBe(originalHref);
+  });
+});
+
+describe("slug options: stripDiacritics", () => {
+  afterEach(() => setSlugOptions(undefined));
+  const slug = (fp: string) => slugifyFilePath(fp as FilePath);
+
+  it("is off by default: slugs keep their diacritics", () => {
+    expect(getSlugOptions()).toEqual({});
+    expect(slug("české/Čeština.md")).toBe("české/čeština");
+    expect(slugTag("čeština")).toBe("čeština");
+  });
+
+  it("strips diacritics from paths, tags and link targets", () => {
+    setSlugOptions({ stripDiacritics: true });
+    expect(slug("české/Čeština.md")).toBe("ceske/cestina");
+    expect(slug("Příliš žluťoučký kůň.md")).toBe("prilis-zlutoucky-kun");
+    expect(slug("Tiếng Việt.md")).toBe("tieng-viet");
+    expect(slug("c\u030ceština.md")).toBe("cestina"); // decomposed (macOS) file names
+    expect(slug("obrázek.PNG")).toBe("obrazek.PNG");
+    expect(slugTag("téma/podtéma")).toBe("tema/podtema");
+    const opts: TransformOptions = {
+      strategy: "shortest",
+      allSlugs: ["ceske/cestina", "index"] as FullSlug[],
+    };
+    expect(transformLink("index" as FullSlug, "Čeština", opts)).toBe("./ceske/cestina");
+  });
+
+  it("keeps scripts whose marks are not Latin diacritics, and undecomposable letters", () => {
+    setSlugOptions({ stripDiacritics: true });
+    expect(slug("한국어.md")).toBe("한국어");
+    expect(slug("がぎぐ.md")).toBe("がぎぐ");
+    expect(slug("हिन्दी.md")).toBe("हिन्दी");
+    expect(slug("Łódź ø ß.md")).toBe("łodz-ø-ß");
+  });
+
+  it("is shared through globalThis, so separate copies of the package agree", () => {
+    setSlugOptions({ stripDiacritics: true });
+    const key = Symbol.for("@quartz-community/utils/slugOptions");
+    expect((globalThis as Record<symbol, unknown>)[key]).toEqual({ stripDiacritics: true });
+  });
+
+  it("stripDiacritics recomposes", () => {
+    expect(stripDiacritics("Ελληνικά")).toBe("Ελληνικα");
+    expect(stripDiacritics("가")).toBe("가");
   });
 });
