@@ -512,7 +512,12 @@ function _rebaseHastElement(
   if (value === undefined || value === null) return;
   const href = String(value);
   if (!isRelativeURL(href)) return;
-  el.properties![attr] = joinSegments(resolveRelative(curBase, newBase), "..", href);
+  // `href` is relative to the embedded page's directory. Take that directory
+  // from the raw slug: `resolveRelative` simplifies its target, which strips a
+  // trailing `index`, so for a folder note (`folder/index`) an extra `..`
+  // would remove a real path segment.
+  const targetDir = newBase.split("/").slice(0, -1).join("/");
+  el.properties![attr] = joinSegments(pathToRoot(curBase), targetDir, href);
 }
 
 /** @internal */

@@ -830,6 +830,30 @@ describe("normalizeHastElement", () => {
     expect(new URL(href, "https://example.com/canvas.canvas").pathname).toBe("/layout");
   });
 
+  it("keeps a folder note's directory when rebasing its links (index slug)", () => {
+    // `folder/index` is served at /docs/folder/, so its `../other` means /docs/other.
+    const el = makeEl("../other");
+    const out = normalizeHastElement(el, "board" as FullSlug, "folder/index" as FullSlug);
+    const href = out.properties!.href as string;
+    expect(new URL(href, "https://example.com/docs/board").pathname).toBe("/docs/other");
+  });
+
+  it("rebases a nested folder note's links into a nested page", () => {
+    const el = makeEl("./sibling");
+    const out = normalizeHastElement(el, "x/y/board" as FullSlug, "a/b/index" as FullSlug);
+    const href = out.properties!.href as string;
+    expect(new URL(href, "https://example.com/docs/x/y/board").pathname).toBe("/docs/a/b/sibling");
+  });
+
+  it("matches the ordinary-page result for a non-index slug under a base path", () => {
+    const el = makeEl("./install-notes");
+    const out = normalizeHastElement(el, "board" as FullSlug, "guides/setup/install" as FullSlug);
+    const href = out.properties!.href as string;
+    expect(new URL(href, "https://example.com/docs/board").pathname).toBe(
+      "/docs/guides/setup/install-notes",
+    );
+  });
+
   it("does not mutate the input element", () => {
     const el = makeEl("../layout");
     const originalHref = el.properties!.href;
