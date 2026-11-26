@@ -28,10 +28,14 @@ export function escapeHTML(unsafe: string): string {
  * unescapeHTML('&lt;div&gt;') // '<div>'
  */
 export function unescapeHTML(html: string): string {
-  return html
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&#039;", "'");
+  // One pass, so "&amp;lt;" becomes "&lt;" and is not decoded again to "<".
+  return html.replace(/&(?:amp|lt|gt|quot|#039);/g, (entity) => HTML_ENTITIES[entity]!);
 }
+
+const HTML_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#039;": "'",
+};
