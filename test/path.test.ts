@@ -891,12 +891,46 @@ describe("slug options: stripDiacritics", () => {
     expect(transformLink("index" as FullSlug, "Čeština", opts)).toBe("./ceske/cestina");
   });
 
-  it("keeps scripts whose marks are not Latin diacritics, and undecomposable letters", () => {
+  it("folds Latin letters without a decomposition to ASCII", () => {
     setSlugOptions({ stripDiacritics: true });
+    expect(slug("Łódź ø ß.md")).toBe("lodz-o-ss");
+    expect(slug("Straße/Æble Œuvre.md")).toBe("strasse/aeble-oeuvre");
+    expect(slug("Đakovo Þórshöfn Ħamrun.md")).toBe("dakovo-thorshofn-hamrun");
+    expect(slug("İstanbul ılık.md")).toBe("istanbul-ilik"); // Turkish dotted and dotless i
+    expect(slugTag("Grüße/Smørrebrød")).toBe("grusse/smorrebrod");
+  });
+
+  it("leaves other scripts as written: their slugs are percent-encoded either way", () => {
+    setSlugOptions({ stripDiacritics: true });
+    expect(slug("Мой ёжик.md")).toBe("мой-ёжик"); // й and ё are letters of their own
+    expect(slug("Україна.md")).toBe("україна");
+    expect(slug("Ελληνικά.md")).toBe("ελληνικά");
     expect(slug("한국어.md")).toBe("한국어");
     expect(slug("がぎぐ.md")).toBe("がぎぐ");
     expect(slug("हिन्दी.md")).toBe("हिन्दी");
-    expect(slug("Łódź ø ß.md")).toBe("łodz-ø-ß");
+    expect(slug("ภาษาไทย.md")).toBe("ภาษาไทย");
+    expect(slug("שָׁלוֹם.md")).toBe("שָׁלוֹם");
+    expect(slug("مُحَمَّد.md")).toBe("مُحَمَّد");
+    expect(slug("日本語/中文.md")).toBe("日本語/中文");
+  });
+
+  it("handles mixed and unusual input", () => {
+    setSlugOptions({ stripDiacritics: true });
+    expect(slug("Café в Москве.md")).toBe("cafe-в-москве"); // per letter, not per name
+    expect(slug("a\u1ab0b v\u20d7.md")).toBe("ab-v"); // marks outside U+0300–U+036F
+    expect(slug("\u0301x.md")).toBe("\u0301x"); // a mark with no letter before it stays
+    expect(slug("👍🏽 👨‍👩‍👧.md")).toBe("👍🏽-👨‍👩‍👧");
+    expect(slug("ﬁle.md")).toBe("ﬁle"); // compatibility forms are not folded
+    expect(slug("résumé.md")).toBe(slug("resume.md")); // collisions are possible (Quartz warns)
+  });
+
+  it("is idempotent and agrees for composed and decomposed input", () => {
+    setSlugOptions({ stripDiacritics: true });
+    for (const name of ["Příliš žluťoučký kůň", "Łódź", "Мой ёжик", "Tiếng Việt", "Ελληνικά"]) {
+      const once = slug(`${name}.md`);
+      expect(slug(`${once}.md`)).toBe(once);
+      expect(slug(`${name.normalize("NFD")}.md`)).toBe(once);
+    }
   });
 
   it("is shared through globalThis, so separate copies of the package agree", () => {
@@ -905,8 +939,9 @@ describe("slug options: stripDiacritics", () => {
     expect((globalThis as Record<symbol, unknown>)[key]).toEqual({ stripDiacritics: true });
   });
 
-  it("stripDiacritics recomposes", () => {
-    expect(stripDiacritics("Ελληνικά")).toBe("Ελληνικα");
+  it("stripDiacritics keeps case and recomposes", () => {
+    expect(stripDiacritics("Čeština ŁÓDŹ")).toBe("Cestina LODZ");
+    expect(stripDiacritics("Ελληνικά")).toBe("Ελληνικά");
     expect(stripDiacritics("가")).toBe("가");
   });
 });
