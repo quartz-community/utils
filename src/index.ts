@@ -27,13 +27,23 @@ export {
   resolveAnchorHref,
   slugifyPath,
   slugTag,
+  setSlugOptions,
+  getSlugOptions,
+  stripDiacritics,
   transformInternalLink,
   linkPathDecodes,
   transformLink,
   normalizeHastElement,
 } from "./path.js";
 
-export type { FilePath, FullSlug, SimpleSlug, RelativeURL, TransformOptions } from "./path.js";
+export type {
+  FilePath,
+  FullSlug,
+  SimpleSlug,
+  RelativeURL,
+  TransformOptions,
+  SlugOptions,
+} from "./path.js";
 
 export { removeAllChildren, registerEscapeHandler, normalizeRelativeURLs } from "./dom.js";
 
