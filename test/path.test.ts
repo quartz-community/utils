@@ -323,16 +323,21 @@ describe("splitAnchor", () => {
     expect(anchor).toBe("#my-heading");
   });
 
-  it("strips ^ and lowercases block references", () => {
+  it("keeps ^ and lowercases block references", () => {
     const [fp, anchor] = splitAnchor("page#^MyBlock123");
     expect(fp).toBe("page");
-    expect(anchor).toBe("#myblock123");
+    expect(anchor).toBe("#^myblock123");
   });
 
-  it("strips ^ and lowercases complex block reference IDs", () => {
+  it("keeps ^ and lowercases complex block reference IDs", () => {
     const [fp, anchor] = splitAnchor("page#^CB-A34B78B4ICqt6zX6xBDAh6CT-47-927-1034");
     expect(fp).toBe("page");
-    expect(anchor).toBe("#cb-a34b78b4icqt6zx6xbdah6ct-47-927-1034");
+    expect(anchor).toBe("#^cb-a34b78b4icqt6zx6xbdah6ct-47-927-1034");
+  });
+
+  it("gives a block and a heading of the same name different anchors", () => {
+    expect(splitAnchor("page#^para-1")[1]).toBe("#^para-1");
+    expect(splitAnchor("page#Para 1")[1]).toBe("#para-1");
   });
 
   it("returns empty anchor when no # present", () => {
@@ -407,7 +412,14 @@ describe("obsidianHeadingAnchor", () => {
 });
 
 describe("resolveAnchorHref", () => {
-  const ids = new Set(["监听-127001推荐", "colonunspaced", "colon-unspaced", "block1", "Mixed Id"]);
+  const ids = new Set([
+    "监听-127001推荐",
+    "colonunspaced",
+    "colon-unspaced",
+    "^block1",
+    "Mixed Id",
+    "para-1",
+  ]);
 
   // quartz-community/crawl-links#4
   it("slugs an anchor written as the heading's text", () => {
@@ -424,8 +436,15 @@ describe("resolveAnchorHref", () => {
   });
 
   it("points a block reference at the block's id", () => {
-    expect(resolveAnchorHref("#^block1", ids)).toBe("#block1");
-    expect(resolveAnchorHref("#^BLOCK1", ids)).toBe("#block1");
+    expect(resolveAnchorHref("#^block1", ids)).toBe("#^block1");
+    expect(resolveAnchorHref("#^BLOCK1", ids)).toBe("#^block1");
+    expect(resolveAnchorHref("#%5Eblock1", ids)).toBe("#%5Eblock1");
+  });
+
+  it("never points a block reference at a heading of the same name", () => {
+    expect(resolveAnchorHref("#^para-1", ids)).toBe("#^para-1");
+    expect(resolveAnchorHref("#^Para-1", ids)).toBe("#^para-1");
+    expect(resolveAnchorHref("#Para 1", ids)).toBe("#para-1");
   });
 
   it("leaves anchors that name no id unchanged", () => {
@@ -433,7 +452,8 @@ describe("resolveAnchorHref", () => {
     expect(resolveAnchorHref("#!!!", ids)).toBe("#!!!");
     expect(resolveAnchorHref("#%E0%A4%A", ids)).toBe("#%E0%A4%A");
     expect(resolveAnchorHref("#Added Later", ids)).toBe("#Added Later");
-    expect(resolveAnchorHref("#^Block2", ids)).toBe("#^Block2");
+    // a block that isn't (yet) on the page: its anchor, lowercased like block ids
+    expect(resolveAnchorHref("#^Block2", ids)).toBe("#^block2");
   });
 });
 
@@ -486,7 +506,7 @@ describe("transformInternalLink", () => {
   });
 
   it("lowercases block reference anchor", () => {
-    expect(transformInternalLink("Note#^MyBlock123")).toBe("./note#myblock123");
+    expect(transformInternalLink("Note#^MyBlock123")).toBe("./note#^myblock123");
   });
 
   it("handles percent-encoded spaces", () => {

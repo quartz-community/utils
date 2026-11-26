@@ -21,6 +21,7 @@ export {
   pathToRoot,
   resolveRelative,
   splitAnchor,
+  blockAnchor,
   slugHeading,
   HeadingSlugger,
   obsidianHeadingAnchor,
