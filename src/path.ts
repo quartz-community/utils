@@ -256,7 +256,10 @@ export function obsidianHeadingAnchor(text: string): string {
  *
  * - An anchor that already names an id (as written or percent-decoded) is
  *   returned unchanged.
- * - `#^name` (an Obsidian block reference) points at the id `name`.
+ * - `#^name` (an Obsidian block reference) is a block's anchor, never a
+ *   heading's: it points at the block's id `^name` (lowercased, see
+ *   {@link blockAnchor}), as in Obsidian, where blocks and headings are
+ *   separate namespaces.
  * - Otherwise, when the anchor is a heading's text, it points at the
  *   heading's id: the anchor slugged with {@link slugHeading}, e.g.
  *   `#监听 127.0.0.1（推荐）` → `#监听-127001推荐`.
@@ -273,12 +276,25 @@ export function resolveAnchorHref(href: string, ids: ReadonlySet<string>): strin
     // keep the anchor as written
   }
   if (ids.has(raw) || ids.has(decoded)) return href;
-  const bare = decoded.startsWith("^") ? decoded.slice(1) : decoded;
-  if (ids.has(bare)) return "#" + bare;
-  const slugged = slugHeading(bare);
+  if (decoded.startsWith("^")) return blockAnchor(decoded.slice(1));
+  const slugged = slugHeading(decoded);
   return ids.has(slugged) ? "#" + slugged : href;
 }
 
+/**
+ * The anchor of the block `^name`: `#^name`, lowercased. Blocks get the id `^name`
+ * (rehype-obsidian), so a block's anchor never equals a heading's, whose slugs have no `^`: block
+ * `^para-1` and heading `## Para 1` are `#^para-1` and `#para-1`, as in Obsidian.
+ */
+export function blockAnchor(name: string): string {
+  return "#^" + name.toLowerCase();
+}
+
+/**
+ * Split a link into its path and its anchor. A heading anchor is slugged with
+ * {@link slugHeading} (`#My Heading` → `#my-heading`); a block reference keeps its `^`
+ * (`#^MyBlock` → `#^myblock`, see {@link blockAnchor}). PDF anchors pass through.
+ */
 export function splitAnchor(link: string): [string, string] {
   const [fp, anchor] = link.split("#", 2);
   if (fp!.endsWith(".pdf")) {
@@ -287,9 +303,8 @@ export function splitAnchor(link: string): [string, string] {
   if (anchor === undefined) {
     return [fp!, ""];
   }
-  const bare = anchor.startsWith("^") ? anchor.slice(1) : anchor;
-  const slugged = "#" + slugHeading(bare);
-  return [fp!, slugged];
+  if (anchor.startsWith("^")) return [fp!, blockAnchor(anchor.slice(1))];
+  return [fp!, "#" + slugHeading(anchor)];
 }
 
 export function slugTag(tag: string): string {
