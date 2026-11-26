@@ -1,3 +1,13 @@
+## 1.3.0
+
+### Minor Changes
+
+- 1a82d32: Add `setSlugOptions({ stripDiacritics })` (with `getSlugOptions` and `stripDiacritics`): when set, `slugifyPath`, `slugifyFilePath`, `slugTag` and link resolution strip accents and other diacritics from slugs (`české/čeština` → `ceske/cestina`). The setting lives on `globalThis`, so every copy of the package in a thread agrees; Quartz sets it from `configuration.slugs.stripDiacritics`. Off by default, so slugs are unchanged.
+
+### Patch Changes
+
+- 3953c9a: fix(path): `normalizeHastElement` kept links of embedded folder notes one directory too high. The embedded page's directory is now taken from its raw slug, so a slug ending in `index` no longer loses a real path segment (visible under a base path, e.g. canvas file nodes embedding `folder/index.md`).
+
 ## 1.2.1
 
 ### Patch Changes
