@@ -87,14 +87,18 @@ describe("slugifyFilePath extension handling", () => {
     expect(slugifyFilePath("notes.md.bak/page.md" as FilePath)).toBe("notes.md.bak/page");
   });
 
-  // Bug: without an extension, `ext` is undefined and the pattern built from it is
-  // /undefined$/, so a path ending in "undefined" loses those letters. A link is usually written
-  // without one: [[JavaScript undefined]] links to ./javascript- while the note
-  // `JavaScript undefined.md` is at javascript-undefined, and [[notes/undefined]] links to the
-  // folder page `notes` instead.
-  it.fails("keeps a trailing 'undefined' in a path without an extension", () => {
+  // Without an extension the pattern used to be built from `undefined` (/undefined$/), so a path
+  // ending in "undefined" lost those letters: [[JavaScript undefined]] linked to ./javascript-.
+  it("keeps a trailing 'undefined' in a path without an extension", () => {
     expect(slugifyFilePath("JavaScript undefined" as FilePath)).toBe("javascript-undefined");
     expect(slugifyFilePath("notes/undefined" as FilePath)).toBe("notes/undefined");
+    expect(slugifyFilePath("notes/undefined.md" as FilePath)).toBe("notes/undefined");
+  });
+
+  it("strips only the extension itself, not a lookalike before it", () => {
+    expect(slugifyFilePath("a/xmd.md" as FilePath)).toBe("a/xmd");
+    expect(slugifyFilePath("a/photo.png" as FilePath)).toBe("a/photo.png");
+    expect(slugifyFilePath("a/photo.png" as FilePath, true)).toBe("a/photo");
   });
 });
 
