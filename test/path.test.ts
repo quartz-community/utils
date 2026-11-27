@@ -844,14 +844,13 @@ describe("normalizeHastElement", () => {
         },
       ],
     };
-    const out = normalizeHastElement(
-      el,
-      "canvas.canvas" as FullSlug,
-      "plugins/canvaspage" as FullSlug,
-    );
+    // From a page two folders deep, so a nested link left as written (`../layout`) would point
+    // at /a/layout instead of /layout.
+    const out = normalizeHastElement(el, "a/b/board" as FullSlug, "plugins/canvaspage" as FullSlug);
+    expect(out.children[0]).toEqual({ type: "text", value: "see " });
     const innerAnchor = out.children[1] as HastElement;
     const href = innerAnchor.properties!.href as string;
-    expect(new URL(href, "https://example.com/canvas.canvas").pathname).toBe("/layout");
+    expect(new URL(href, "https://example.com/a/b/board").pathname).toBe("/layout");
   });
 
   it("keeps a folder note's directory when rebasing its links (index slug)", () => {

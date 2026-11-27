@@ -67,7 +67,7 @@ export function getFullSlugFromUrl(): FullSlug {
 export function slugifyFilePath(fp: FilePath, excludeExt?: boolean): FullSlug {
   fp = stripSlashes(fp) as FilePath;
   const ext = getFileExtension(fp);
-  const withoutFileExt = fp.replace(new RegExp(ext + "$"), "");
+  const withoutFileExt = ext ? fp.slice(0, -ext.length) : fp;
   const finalExt = excludeExt || [".md", ".html", undefined].includes(ext) ? "" : ext;
 
   let slug = _sluggify(withoutFileExt);
