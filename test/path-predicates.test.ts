@@ -178,6 +178,24 @@ describe("transformLink: more strategies", () => {
     expect(transformLink("notes/topic/other" as FullSlug, "Topic", opts)).toBe("./");
   });
 
+  // obsidian-flavored-markdown builds a tag's href as pathToRoot(slug) + "/tags/…"; under
+  // shortest/absolute it came out one folder too deep (../.././../tags/foo), which leaves a
+  // site served under a base path (TalionOak/Carvalho: /tags/inicio instead of /Carvalho/tags/…).
+  it.each(["shortest", "absolute"] as const)(
+    "%s: a target starting with ../ is relative to the page",
+    (strategy) => {
+      const opts: TransformOptions = { strategy, allSlugs: [...allSlugs, "tags/foo" as FullSlug] };
+      expect(transformLink("a/b/c" as FullSlug, "../../tags/foo", opts)).toBe("../../tags/foo");
+      expect(transformLink("a/b/c" as FullSlug, "../../tags/foo#x", opts)).toBe("../../tags/foo#x");
+      expect(transformLink("a/b/index" as FullSlug, "../../tags/foo", opts)).toBe("../../tags/foo");
+      expect(transformLink("a/b/c" as FullSlug, "../e/f", opts)).toBe("../e/f");
+      // a folder note reached through ../ resolves as under relative
+      expect(transformLink("topic/sub/page" as FullSlug, "../Topic.md", opts)).toBe("../");
+      // vault-root targets are unchanged
+      expect(transformLink("a/b/c" as FullSlug, "e/f", opts)).toBe("../../e/f");
+    },
+  );
+
   it("relative: ../ above the root is not a folder note", () => {
     const opts: TransformOptions = { strategy: "relative", allSlugs };
     expect(transformLink("page" as FullSlug, "../page.md", opts)).toBe("../page");
