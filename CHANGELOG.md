@@ -1,3 +1,9 @@
+## 1.3.3
+
+### Patch Changes
+
+- 3ae51bc: `slugifyFilePath` no longer drops a trailing "undefined" from a path without an extension, so `[[JavaScript undefined]]` links to `javascript-undefined` instead of `javascript-`.
+
 ## 1.3.2
 
 ### Patch Changes
