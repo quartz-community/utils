@@ -964,4 +964,13 @@ describe("slug options: stripDiacritics", () => {
     expect(stripDiacritics("Ελληνικά")).toBe("Ελληνικά");
     expect(stripDiacritics("가")).toBe("가");
   });
+
+  it("folds every letter in the fold table, lower- and uppercase", () => {
+    // these letters have no canonical decomposition, so only the table turns them into ASCII
+    expect(stripDiacritics("ł Ł ø Ø đ Đ ð Ð ħ Ħ ŧ Ŧ ŀ Ŀ ı ƚ ƀ ɨ ʉ ß ẞ æ Æ œ Œ þ Þ")).toBe(
+      "l L o O d D d D h H t T l L i l b i u ss SS ae AE oe OE th Th",
+    );
+    setSlugOptions({ stripDiacritics: true });
+    expect(slug("Ŀŀ ƚƀɨʉ ẞþ.md")).toBe("ll-lbiu-ssth");
+  });
 });
