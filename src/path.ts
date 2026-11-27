@@ -356,7 +356,11 @@ export function transformInternalLink(link: string): RelativeURL {
 export function transformLink(src: FullSlug, target: string, opts: TransformOptions): RelativeURL {
   const targetSlug = transformInternalLink(target);
 
-  if (opts.strategy === "relative") {
+  // A target that climbs out of the page's folder (`../../tags/foo`, as plugins build links with
+  // `pathToRoot`) is relative to the page under every strategy: it cannot name a path from the
+  // vault root. Reading it as one dropped only its first `.`, and with `pathToRoot` in front
+  // the link climbed one folder too many, which leaves a site served under a base path.
+  if (opts.strategy === "relative" || targetSlug.startsWith("../")) {
     return _resolveRelativeFolderNote(src, target) ?? (targetSlug as RelativeURL);
   } else {
     // When src is a folder page (e.g. "Compendium/Spells" backed by index.md),
